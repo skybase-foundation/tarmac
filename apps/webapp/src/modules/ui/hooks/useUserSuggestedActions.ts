@@ -6,7 +6,7 @@ import {
   QueryParams,
   CHAIN_WIDGET_MAP
 } from '@/lib/constants';
-import { useGeoConfig } from '@/modules/geo-config';
+import { useGeoConfig } from '@/modules/geo-config/hooks/useGeoConfig';
 import { Intent, ConvertIntent } from '@/lib/enums';
 import {
   useTokens,
@@ -16,8 +16,8 @@ import {
   TOKENS,
   filterDeprecatedRewardContracts,
   isDeprecatedRewardContract
-} from '@jetstreamgg/sky-hooks';
-import { isL2ChainId } from '@jetstreamgg/sky-utils';
+} from '@/hooks';
+import { isL2ChainId } from '@/utils';
 import { t } from '@lingui/core/macro';
 import { useState, useEffect, useRef } from 'react';
 import { useConnection, useChainId, useChains } from 'wagmi';
@@ -573,6 +573,9 @@ export const useUserSuggestedActions = (
   if (!isModuleEnabled('savings')) geoRestrictedIntents.push(IntentMapping[Intent.SAVINGS_INTENT]);
   if (!isModuleEnabled('rewards')) geoRestrictedIntents.push(IntentMapping[Intent.REWARDS_INTENT]);
   if (!isModuleEnabled('expert')) geoRestrictedIntents.push(IntentMapping[Intent.EXPERT_INTENT]);
+  if (!isModuleEnabled('stake')) geoRestrictedIntents.push(IntentMapping[Intent.STAKE_INTENT]);
+  if (!isModuleEnabled('vaults')) geoRestrictedIntents.push(IntentMapping[Intent.VAULTS_INTENT]);
+  if (!isModuleEnabled('fixed')) geoRestrictedIntents.push(IntentMapping[Intent.FIXED_INTENT]);
   const tokens = useTokens(chainId);
   const [data, setData] = useState<
     { suggestedActions: SuggestedAction[]; linkedActions: LinkedAction[] } | undefined
