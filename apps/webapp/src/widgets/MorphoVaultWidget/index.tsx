@@ -6,6 +6,7 @@ import {
   Token,
   useMorphoVaultOnChainData,
   useVaultMarketData,
+  computeVaultLimits,
   usdtAddress,
   type VaultProvider
 } from '@/hooks';
@@ -110,15 +111,6 @@ const VaultWidgetWrapped = ({
   const userAssets = vaultData?.userAssets ?? 0n;
   const availableLiquidity = marketData?.liquidity;
   const hasLiquidityData = !isMarketDataLoading && availableLiquidity !== undefined;
-  const isLiquidityDataUnavailable = !isMarketDataLoading && availableLiquidity === undefined;
-  const maxWithdraw = hasLiquidityData
-    ? userAssets < availableLiquidity
-      ? userAssets
-      : availableLiquidity
-    : isLiquidityDataUnavailable
-      ? userAssets // Fallback: let user attempt full balance, contract enforces limits
-      : undefined;
-  const isLiquidityConstrained = hasLiquidityData && userAssets > 0n && availableLiquidity < userAssets;
 
   // User's underlying asset balance (e.g., USDC balance)
   const { data: assetBalance, refetch: mutateAssetBalance } = useTokenBalance({
@@ -139,6 +131,38 @@ const VaultWidgetWrapped = ({
 
   // Token decimals for the underlying asset
   const assetDecimals = getTokenDecimals(assetToken, chainId);
+
+  // On-chain ERC-4626 limits → effective input caps (revert-proof, no API needed).
+  const limits = computeVaultLimits({
+    assetBalance: assetBalance?.value,
+    maxDeposit: vaultData?.maxDeposit,
+    userAssets,
+    userShares: vaultData?.userShares,
+    maxWithdraw: vaultData?.maxWithdraw
+  });
+  // Deposit input is clamped to min(walletBalance, remaining cap); a full vault blocks deposits.
+  const maxDepositInput = limits.maxDepositInput;
+  const depositCapReached = limits.depositCapReached;
+
+  // Withdraw cap source is provider-aware: Morpho derives liquidity from its market
+  // API (drives the liquidity disclaimers); Spark has no such API, so the contract's
+  // on-chain maxWithdraw(user) is authoritative.
+  const usesMarketLiquidity = provider === 'morpho';
+  const maxWithdraw = usesMarketLiquidity
+    ? hasLiquidityData
+      ? userAssets < availableLiquidity
+        ? userAssets
+        : availableLiquidity
+      : !isMarketDataLoading
+        ? userAssets // Fallback: let user attempt full balance, contract enforces limits
+        : undefined
+    : limits.maxWithdrawInput;
+  const isLiquidityConstrained = usesMarketLiquidity
+    ? hasLiquidityData && userAssets > 0n && availableLiquidity < userAssets
+    : userAssets > 0n && limits.maxWithdrawInput < userAssets;
+  // Spark relies on the on-chain cap, so its withdraw limit is never "unavailable".
+  const isLiquidityDataUnavailable =
+    usesMarketLiquidity && !isMarketDataLoading && availableLiquidity === undefined;
 
   // Amount state
   const initialAmount =
@@ -260,6 +284,16 @@ const VaultWidgetWrapped = ({
     debouncedAmount > maxWithdraw &&
     amount !== 0n;
 
+  // Deposit exceeds the vault's remaining cap (distinct from insufficient wallet funds).
+  // Only fires when the contract reports a finite cap (Spark); uncapped vaults (Morpho) skip it.
+  const isOverDepositCap =
+    txStatus === TxStatus.IDLE &&
+    !!address &&
+    vaultData?.maxDeposit !== undefined &&
+    debouncedAmount > vaultData.maxDeposit &&
+    !isSupplyBalanceError &&
+    amount !== 0n;
+
   const isAmountWaitingForDebounce = debouncedAmount !== amount;
 
   // Disable states
@@ -272,6 +306,8 @@ const VaultWidgetWrapped = ({
   const supplyDisabled =
     [TxStatus.INITIALIZED, TxStatus.LOADING].includes(txStatus) ||
     isSupplyBalanceError ||
+    isOverDepositCap ||
+    depositCapReached ||
     isAmountWaitingForDebounce ||
     !morphoVaultDeposit.prepared ||
     morphoVaultDeposit.isLoading;
@@ -569,8 +605,13 @@ const VaultWidgetWrapped = ({
               onToggle={setTabIndex}
               amount={amount}
               error={
-                widgetState.flow === MorphoVaultFlow.SUPPLY ? isSupplyBalanceError : isWithdrawBalanceError
+                widgetState.flow === MorphoVaultFlow.SUPPLY
+                  ? isSupplyBalanceError || isOverDepositCap
+                  : isWithdrawBalanceError
               }
+              maxDeposit={maxDepositInput}
+              depositCapReached={depositCapReached}
+              isOverDepositCap={isOverDepositCap}
               onSetMax={setMax}
               tabIndex={tabIndex}
               enabled={enabled}

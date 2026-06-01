@@ -66,6 +66,12 @@ type SupplyWithdrawProps = {
   vaultRate?: string;
   /** Share decimals for formatting vault shares (typically 18) */
   shareDecimals: number;
+  /** Effective deposit input cap: min(walletBalance, remaining vault cap) */
+  maxDeposit?: bigint;
+  /** Whether the vault's deposit cap is reached (no remaining room) */
+  depositCapReached?: boolean;
+  /** Whether the entered amount exceeds the remaining deposit cap */
+  isOverDepositCap?: boolean;
   /** Available liquidity in the vault for withdrawals */
   availableLiquidity?: bigint;
   /** Whether the liquidity disclaimer checkbox is checked */
@@ -98,6 +104,9 @@ export const SupplyWithdraw = ({
   vaultTvl,
   vaultRate,
   shareDecimals,
+  maxDeposit,
+  depositCapReached = false,
+  isOverDepositCap = false,
   availableLiquidity,
   disclaimerChecked = false,
   onDisclaimerChange
@@ -157,16 +166,35 @@ export const SupplyWithdraw = ({
               placeholder={t`Enter amount`}
               token={assetToken}
               tokenList={[assetToken]}
-              balance={address ? assetBalance : undefined}
+              balance={address ? (maxDeposit ?? assetBalance) : undefined}
               onChange={(newValue, event) => {
                 onChange(BigInt(newValue), !!event);
               }}
               value={amount}
               dataTestId={`supply-input-${provider}`}
-              error={error ? t`Insufficient funds` : undefined}
+              error={
+                error
+                  ? isOverDepositCap
+                    ? t`Exceeds the vault's remaining deposit capacity`
+                    : t`Insufficient funds`
+                  : undefined
+              }
               showPercentageButtons={isConnectedAndEnabled}
-              enabled={isConnectedAndEnabled}
+              enabled={isConnectedAndEnabled && !depositCapReached}
             />
+            {!isVaultDataLoading && depositCapReached && (
+              <div
+                className="mt-2 ml-3 flex items-start text-amber-400"
+                data-testid={`deposit-cap-reached-${provider}`}
+              >
+                <Text variant="small">
+                  <Trans>
+                    This vault has reached its deposit cap. Deposits are temporarily unavailable until
+                    capacity frees up.
+                  </Trans>
+                </Text>
+              </div>
+            )}
             {onDisclaimerChange && (
               <label className="mt-2 -mb-1 ml-3 flex cursor-pointer items-start">
                 <Checkbox

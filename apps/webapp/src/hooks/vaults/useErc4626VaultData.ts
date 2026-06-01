@@ -26,6 +26,12 @@ export type Erc4626VaultData = {
   userShares: bigint;
   /** User's underlying asset value (calculated via convertToAssets) */
   userAssets: bigint;
+  /** On-chain `maxDeposit(user)` — remaining room under the vault's supply cap (undefined when not connected/read). */
+  maxDeposit?: bigint;
+  /** On-chain `maxWithdraw(user)` — assets the user can withdraw right now (undefined when not connected/read). */
+  maxWithdraw?: bigint;
+  /** On-chain `maxRedeem(user)` — shares the user can redeem right now (undefined when not connected/read). */
+  maxRedeem?: bigint;
   /** The underlying asset address */
   asset: `0x${string}`;
   /** Vault share token decimals */
@@ -95,7 +101,12 @@ export function useErc4626VaultData({
     error: userError,
     refetch: refetchUser
   } = useReadContracts({
-    contracts: [{ ...vaultContract, functionName: 'balanceOf', args: [userAddress || ZERO_ADDRESS] }],
+    contracts: [
+      { ...vaultContract, functionName: 'balanceOf', args: [userAddress || ZERO_ADDRESS] },
+      { ...vaultContract, functionName: 'maxDeposit', args: [userAddress || ZERO_ADDRESS] },
+      { ...vaultContract, functionName: 'maxWithdraw', args: [userAddress || ZERO_ADDRESS] },
+      { ...vaultContract, functionName: 'maxRedeem', args: [userAddress || ZERO_ADDRESS] }
+    ],
     query: {
       enabled: !!vaultAddress && !!userAddress
     }
@@ -134,6 +145,12 @@ export function useErc4626VaultData({
     // User data defaults to 0 if not connected or call failed
     const userShares = userData?.[0]?.status === 'success' ? userData[0].result : 0n;
 
+    // On-chain ERC-4626 limits. Left undefined (not 0n) when not connected/read so
+    // callers can distinguish "no room" from "unknown" (e.g. a false cap-reached state).
+    const maxDeposit = userData?.[1]?.status === 'success' ? userData[1].result : undefined;
+    const maxWithdraw = userData?.[2]?.status === 'success' ? userData[2].result : undefined;
+    const maxRedeem = userData?.[3]?.status === 'success' ? userData[3].result : undefined;
+
     // Calculate userAssets using convertToAssets formula: shares * assetPerShare / 10^decimals
     // assetPerShare is the result of convertToAssets(10^18), so we need to adjust for decimals
     const userAssets = userShares > 0n ? (userShares * assetPerShare) / 10n ** BigInt(decimals) : 0n;
@@ -144,6 +161,9 @@ export function useErc4626VaultData({
       assetPerShare,
       userShares,
       userAssets,
+      maxDeposit,
+      maxWithdraw,
+      maxRedeem,
       asset,
       decimals
     };

@@ -145,7 +145,10 @@ export {
   type Erc4626VaultData,
   type Erc4626VaultDataHook,
   type UseVaultMarketDataParams,
-  type VaultMarketDataHook
+  type VaultMarketDataHook,
+  computeVaultLimits,
+  type VaultLimits,
+  type VaultLimitsInput
 } from './vaults';
 
 // Pendle (Fixed Yield)
