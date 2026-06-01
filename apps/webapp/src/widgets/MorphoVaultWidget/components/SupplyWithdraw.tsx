@@ -1,6 +1,6 @@
 import { t } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
-import { getTokenDecimals, Token } from '@/hooks';
+import { getTokenDecimals, Token, type VaultProvider } from '@/hooks';
 import { formatBigInt } from '@/utils';
 import { TokenInput } from '@/widgets/shared/components/ui/token/TokenInput';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/widgets/components/ui/tabs';
@@ -58,6 +58,8 @@ type SupplyWithdrawProps = {
   vaultAddress?: `0x${string}`;
   /** Display name for the vault */
   vaultName: string;
+  /** Which provider operates the vault (branding + test-id suffix). Defaults to Morpho. */
+  provider?: VaultProvider;
   /** Vault TVL (total assets) */
   vaultTvl?: bigint;
   /** Vault APY (if available from external source) */
@@ -92,6 +94,7 @@ export const SupplyWithdraw = ({
   onExternalLinkClicked,
   vaultAddress,
   vaultName,
+  provider = 'morpho',
   vaultTvl,
   vaultRate,
   shareDecimals,
@@ -135,6 +138,7 @@ export const SupplyWithdraw = ({
           isLoading={isVaultDataLoading}
           vaultAddress={vaultAddress}
           vaultName={vaultName}
+          provider={provider}
           vaultBalance={vaultBalance}
           userShares={userShares}
           vaultTvl={vaultTvl}
@@ -158,7 +162,7 @@ export const SupplyWithdraw = ({
                 onChange(BigInt(newValue), !!event);
               }}
               value={amount}
-              dataTestId="supply-input-morpho"
+              dataTestId={`supply-input-${provider}`}
               error={error ? t`Insufficient funds` : undefined}
               showPercentageButtons={isConnectedAndEnabled}
               enabled={isConnectedAndEnabled}
@@ -225,7 +229,7 @@ export const SupplyWithdraw = ({
                   : undefined
               }
               onSetMax={onSetMax}
-              dataTestId="withdraw-input-morpho"
+              dataTestId={`withdraw-input-${provider}`}
               showPercentageButtons={isConnectedAndEnabled}
               enabled={isConnectedAndEnabled}
               showGauge={true}

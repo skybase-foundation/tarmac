@@ -9,7 +9,7 @@ import { MorphoVaultWidgetPane } from '@/modules/morpho/components/MorphoVaultWi
 import { VaultsIntentMapping, QueryParams } from '@/lib/constants';
 import { useSearchParams } from 'react-router-dom';
 import { MorphoVaultStatsCard } from '@/modules/expert/components/MorphoVaultStatsCard';
-import { MORPHO_VAULTS, useAllMorphoVaultsUserAssets } from '@/hooks';
+import { VAULTS, useAllMorphoVaultsUserAssets } from '@/hooks';
 import { useChainId } from 'wagmi';
 import { useMemo } from 'react';
 import { positionAnimations } from '@/widgets';
@@ -22,17 +22,17 @@ export function VaultsWidgetPane(sharedProps: SharedProps) {
   const selectedVaultAddress = searchParams.get(QueryParams.Vault) as `0x${string}` | null;
 
   const selectedVault =
-    MORPHO_VAULTS.find(v => v.vaultAddress[chainId]?.toLowerCase() === selectedVaultAddress?.toLowerCase()) ||
-    MORPHO_VAULTS[0];
+    VAULTS.find(v => v.vaultAddress[chainId]?.toLowerCase() === selectedVaultAddress?.toLowerCase()) ||
+    VAULTS[0];
 
   const { data: userVaultsData } = useAllMorphoVaultsUserAssets();
 
   // Separate vaults into "My Vaults" (user has balance) and "All Vaults"
   const [myVaults, allVaults] = useMemo(() => {
-    const myVaults: typeof MORPHO_VAULTS = [];
-    const allVaults: typeof MORPHO_VAULTS = [];
+    const myVaults: typeof VAULTS = [];
+    const allVaults: typeof VAULTS = [];
 
-    MORPHO_VAULTS.forEach(vault => {
+    VAULTS.forEach(vault => {
       const vaultAddressForChain = vault.vaultAddress[chainId];
       if (!vaultAddressForChain) return;
 
@@ -73,6 +73,7 @@ export function VaultsWidgetPane(sharedProps: SharedProps) {
             vaultAddress={selectedVault.vaultAddress}
             assetToken={selectedVault.assetToken}
             vaultName={selectedVault.name}
+            provider={selectedVault.provider}
           />
         );
       default:
@@ -114,6 +115,7 @@ export function VaultsWidgetPane(sharedProps: SharedProps) {
                         vaultAddress={vault.vaultAddress}
                         vaultName={vault.name}
                         assetToken={vault.assetToken}
+                        provider={vault.provider}
                         onClick={() => handleSelectMorphoVault(vaultAddressForChain)}
                       />
                     );
@@ -134,6 +136,7 @@ export function VaultsWidgetPane(sharedProps: SharedProps) {
                         vaultAddress={vault.vaultAddress}
                         vaultName={vault.name}
                         assetToken={vault.assetToken}
+                        provider={vault.provider}
                         onClick={() => handleSelectMorphoVault(vaultAddressForChain)}
                       />
                     );

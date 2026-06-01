@@ -8,6 +8,7 @@ import { Skeleton } from '@/widgets/components/ui/skeleton';
 import { StatsAccordionCard } from '@/widgets/shared/components/ui/card/StatsAccordionCard';
 import { positionAnimations } from '@/widgets/shared/animation/presets';
 import { MorphoVaultStatsCardCore } from './MorphoVaultStatsCardCore';
+import type { VaultProvider } from '@/hooks';
 
 type MorphoVaultStatsCardProps = {
   /** Whether data is loading */
@@ -16,6 +17,8 @@ type MorphoVaultStatsCardProps = {
   vaultAddress?: `0x${string}`;
   /** Display name for the vault */
   vaultName: string;
+  /** Which provider operates the vault (branding). Defaults to Morpho. */
+  provider?: VaultProvider;
   /** User's vault balance in underlying assets */
   vaultBalance?: bigint;
   /** User's vault share balance */
@@ -38,6 +41,7 @@ export const MorphoVaultStatsCard = ({
   isLoading,
   vaultAddress,
   vaultName,
+  provider = 'morpho',
   vaultBalance,
   userShares,
   vaultTvl,
@@ -101,6 +105,7 @@ export const MorphoVaultStatsCard = ({
       vaultName={vaultName}
       assetSymbol={assetSymbol}
       vaultAddress={vaultAddress}
+      provider={provider}
       content={
         <StatsAccordionCard
           chainId={chainId}

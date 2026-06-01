@@ -24,12 +24,13 @@ export function useVaultMarketData({
   provider,
   vaultAddress
 }: UseVaultMarketDataParams): VaultMarketDataHook {
-  const morphoData = useMorphoVaultMarketApiData({ vaultAddress });
+  // Only the Morpho source is wired today. For other providers we pass an
+  // undefined address so the Morpho query stays disabled (no wrong-provider
+  // fetch) and the hook returns a clean empty/non-loading state. Slice 04
+  // replaces this fall-through with the real Spark source.
+  const morphoData = useMorphoVaultMarketApiData({
+    vaultAddress: provider === 'morpho' ? vaultAddress : undefined
+  });
 
-  if (provider === 'morpho') {
-    return morphoData;
-  }
-
-  // Spark and future providers route here (slice 04).
   return morphoData;
 }

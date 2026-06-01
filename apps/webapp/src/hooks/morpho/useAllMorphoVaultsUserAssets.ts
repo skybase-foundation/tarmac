@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useReadContracts, useConnection, useChainId } from 'wagmi';
 import { usdsRiskCapitalVaultAbi } from '../generated';
-import { MORPHO_VAULTS } from './constants';
+import { VAULTS } from '../vaults/constants';
 import { MorphoVaultConfig } from './morpho';
 import { ZERO_ADDRESS } from '../constants';
 import { chainId, isTestnetId } from '@/utils';
@@ -46,10 +46,10 @@ export function useAllMorphoVaultsUserAssets(): ReadHook & { data: AllMorphoVaul
 
   const vaultsWithAddress = useMemo(
     () =>
-      MORPHO_VAULTS.map(vault => ({
+      VAULTS.map(vault => ({
         vault,
         address: vault.vaultAddress[chainIdToUse]
-      })).filter((v): v is { vault: (typeof MORPHO_VAULTS)[number]; address: `0x${string}` } => !!v.address),
+      })).filter((v): v is { vault: (typeof VAULTS)[number]; address: `0x${string}` } => !!v.address),
     [chainIdToUse]
   );
 

@@ -38,4 +38,12 @@ describe('useVaultMarketData dispatcher', () => {
 
     expect(result.current.data?.totalAssets).toBe(123n);
   });
+
+  it("disables the Morpho fetch for a 'spark' vault (no wrong-provider request until slice 04)", () => {
+    renderHook(() => useVaultMarketData({ provider: 'spark', vaultAddress: VAULT }));
+
+    // Spark has no wired source yet — the Morpho query is kept disabled by
+    // passing an undefined address, so it never fetches against the Morpho API.
+    expect(useMorphoVaultMarketApiData).toHaveBeenCalledWith({ vaultAddress: undefined });
+  });
 });

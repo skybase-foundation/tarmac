@@ -5,8 +5,9 @@ import {
   useIsBatchSupported,
   Token,
   useMorphoVaultOnChainData,
-  useMorphoVaultMarketApiData,
-  usdtAddress
+  useVaultMarketData,
+  usdtAddress,
+  type VaultProvider
 } from '@/hooks';
 import { useDebounce } from '@/hooks';
 import { useContext, useEffect, useMemo, useState } from 'react';
@@ -51,6 +52,8 @@ export type VaultWidgetProps = WidgetProps & {
   assetToken: Token;
   /** Vault name for display purposes */
   vaultName?: string;
+  /** Which provider operates the vault (drives branding + data source). Defaults to Morpho. */
+  provider?: VaultProvider;
   /** Callback to navigate back to vaults view */
   onBackToVaults?: () => void;
 };
@@ -63,6 +66,7 @@ const VaultWidgetWrapped = ({
   assetAddress,
   assetToken,
   vaultName = 'Vault',
+  provider = 'morpho',
   rightHeaderComponent,
   externalWidgetState,
   onStateValidated,
@@ -92,11 +96,14 @@ const VaultWidgetWrapped = ({
     isLoading: isVaultDataLoading,
     mutate: mutateVaultData
   } = useMorphoVaultOnChainData({
-    vaultAddress
+    vaultAddress,
+    provider
   });
 
-  // Market data hook - fetches rate and market data from Morpho API in a single call
-  const { data: marketData, isLoading: isMarketDataLoading } = useMorphoVaultMarketApiData({
+  // Market data hook - provider-aware dispatcher. Morpho reads its API; other
+  // providers (Spark) return an empty state until their source is wired (slice 04).
+  const { data: marketData, isLoading: isMarketDataLoading } = useVaultMarketData({
+    provider,
     vaultAddress
   });
 
@@ -570,6 +577,7 @@ const VaultWidgetWrapped = ({
               onExternalLinkClicked={onExternalLinkClicked}
               vaultAddress={vaultAddress}
               vaultName={vaultName}
+              provider={provider}
               vaultTvl={vaultData?.totalAssets}
               vaultRate={marketData?.rate?.formattedNetRate}
               shareDecimals={vaultData?.decimals ?? 18}

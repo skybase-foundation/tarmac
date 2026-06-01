@@ -5,7 +5,7 @@ import {
   MorphoVaultFlow,
   MorphoVaultAction
 } from '@/widgets';
-import { Token } from '@/hooks';
+import { Token, type VaultProvider } from '@/hooks';
 import { VaultsIntentMapping, QueryParams } from '@/lib/constants';
 import { SharedProps } from '@/modules/app/types/Widgets';
 import { LinkedActionSteps } from '@/modules/config/context/ConfigContext';
@@ -16,18 +16,21 @@ import { VaultsIntent } from '@/lib/enums';
 import { useChainId } from 'wagmi';
 
 type MorphoVaultWidgetPaneProps = SharedProps & {
-  /** The Morpho vault contract address mapping by chain ID */
+  /** The vault contract address mapping by chain ID */
   vaultAddress: Record<number, `0x${string}`>;
   /** The underlying asset token */
   assetToken: Token;
   /** Display name for the vault */
   vaultName: string;
+  /** Which provider operates the vault (branding + data source). Defaults to Morpho. */
+  provider?: VaultProvider;
 };
 
 export function MorphoVaultWidgetPane({
   vaultAddress,
   assetToken,
   vaultName,
+  provider = 'morpho',
   ...sharedProps
 }: MorphoVaultWidgetPaneProps) {
   const chainId = useChainId();
@@ -111,6 +114,7 @@ export function MorphoVaultWidgetPane({
       assetAddress={currentAssetAddress}
       assetToken={assetToken}
       vaultName={vaultName}
+      provider={provider}
       onWidgetStateChange={onMorphoVaultWidgetStateChange}
       externalWidgetState={{
         amount: linkedActionConfig?.inputAmount,

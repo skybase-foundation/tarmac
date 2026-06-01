@@ -67,6 +67,18 @@ export const contracts: {
       [TENDERLY_CHAIN_ID]: '0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf'
     }
   },
+
+  // Spark Tether Savings (sUSDT) vault — verified ERC-4626 SparkVault (APP-266).
+  // Reuses the generic ERC-4626 ABI (usdsRiskCapitalVaultAbi); registered here for
+  // codegen completeness, but consumed at runtime via SPARK_USDT_VAULT_ADDRESS in
+  // hooks/vaults/spark/constants.ts (no `pnpm generate` run for this slice).
+  {
+    name: 'sparkUsdtVault',
+    address: {
+      [mainnet.id]: '0x74cb54e082411cfCAEADb00a0765625B10410DAa',
+      [TENDERLY_CHAIN_ID]: '0x74cb54e082411cfCAEADb00a0765625B10410DAa'
+    }
+  },
   {
     name: 'wstEth',
     address: {

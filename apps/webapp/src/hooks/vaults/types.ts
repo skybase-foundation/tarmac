@@ -12,6 +12,8 @@ export type VaultConfig = {
   provider: VaultProvider;
   /** Display name for the vault */
   name: string;
+  /** Optional share-token symbol (e.g. `sUSDT`) for display/disambiguation */
+  symbol?: string;
   /** The vault contract address mapping by chain ID (also the unique identifier) */
   vaultAddress: Record<number, `0x${string}`>;
   /** The underlying asset token */

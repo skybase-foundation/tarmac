@@ -8,6 +8,7 @@ import {
 } from '@/widgets/components/ui/tooltip';
 import { cn } from '@/widgets/lib/utils';
 import { Morpho as MorphoIcon } from '@/widgets/shared/components/icons/Morpho';
+import { Spark as SparkIcon } from '@/widgets/shared/components/icons/Spark';
 import { Text } from '@/widgets/shared/components/ui/Typography';
 import { VaultProvider } from '@/hooks';
 
@@ -23,6 +24,22 @@ type VaultPoweredByBadgeProps = {
  */
 export const VaultPoweredByBadge = ({ provider, className }: VaultPoweredByBadgeProps) => {
   switch (provider) {
+    case 'spark':
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <SparkIcon className={cn('h-4.5 w-4.5 rounded-sm', className)} />
+          </TooltipTrigger>
+          <TooltipPortal>
+            <TooltipContent arrowPadding={10} className="max-w-[260px]">
+              <Text variant="small">
+                <Trans>Vault powered by Spark</Trans>
+              </Text>
+              <TooltipArrow width={12} height={8} />
+            </TooltipContent>
+          </TooltipPortal>
+        </Tooltip>
+      );
     case 'morpho':
     default:
       return (

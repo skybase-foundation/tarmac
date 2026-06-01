@@ -5,6 +5,8 @@ import { Text } from '@/widgets/shared/components/ui/Typography';
 import { positionAnimations } from '@/widgets/shared/animation/presets';
 import { JSX } from 'react';
 import { MorphoRateBreakdownPopover } from './MorphoRateBreakdownPopover';
+import { VaultPoweredByBadge } from './MorphoVaultBadge';
+import type { VaultProvider } from '@/hooks';
 
 type MorphoVaultStatsCardCoreProps = {
   /** Display name for the vault */
@@ -13,6 +15,8 @@ type MorphoVaultStatsCardCoreProps = {
   assetSymbol: string;
   /** Address of the selected vault */
   vaultAddress?: `0x${string}`;
+  /** Which provider operates the vault (branding + rate source). Defaults to Morpho. */
+  provider?: VaultProvider;
   /** The accordion/collapsible content */
   content: JSX.Element;
 };
@@ -21,6 +25,7 @@ export const MorphoVaultStatsCardCore = ({
   vaultName,
   assetSymbol,
   vaultAddress,
+  provider = 'morpho',
   content
 }: MorphoVaultStatsCardCoreProps) => {
   return (
@@ -29,11 +34,15 @@ export const MorphoVaultStatsCardCore = ({
         <MotionHStack className="items-center" gap={2} variants={positionAnimations}>
           <TokenIcon className="h-6 w-6" token={{ symbol: assetSymbol }} />
           <Text>{vaultName}</Text>
+          <VaultPoweredByBadge provider={provider} />
         </MotionHStack>
       }
       headerRightContent={
         <MotionHStack className="items-center" gap={2} variants={positionAnimations}>
-          {vaultAddress && <MorphoRateBreakdownPopover vaultAddress={vaultAddress} />}
+          {/* Rate breakdown is sourced from the Morpho API; only shown for Morpho vaults. */}
+          {provider === 'morpho' && vaultAddress && (
+            <MorphoRateBreakdownPopover vaultAddress={vaultAddress} />
+          )}
         </MotionHStack>
       }
       content={content}
