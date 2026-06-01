@@ -61,4 +61,25 @@ describe('VaultWidget deposit cap', () => {
     });
     expect(capNotice).toBeTruthy();
   }, 30000);
+
+  // Regression: Morpho V2 vaults return maxDeposit(user) === 0n on-chain even when
+  // deposits are open, so the cap-reached gate must NOT fire for the morpho provider
+  // (only Spark exposes a real on-chain cap). Same 0n data as above, different provider.
+  it('does not show the deposit-cap-reached state for Morpho vaults reading maxDeposit === 0n', async () => {
+    render(
+      <VaultWidget
+        vaultAddress="0x23f5E9c35820f4baB695Ac1F19c203cC3f8e1e11"
+        assetAddress="0xdAC17F958D2ee523a2206206994597C13D831ec7"
+        assetToken={TOKENS.usdt}
+        vaultName="USDT Savings"
+        provider="morpho"
+      />,
+      { wrapper: WagmiWrapper }
+    );
+
+    // The supply input must render (proves the widget mounted past loading)...
+    await screen.findByTestId('supply-input-morpho', undefined, { timeout: 10000 });
+    // ...without the false cap-reached notice that Morpho's 0n maxDeposit would trigger.
+    expect(screen.queryByTestId('deposit-cap-reached-morpho')).toBeNull();
+  }, 30000);
 });

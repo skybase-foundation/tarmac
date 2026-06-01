@@ -132,10 +132,17 @@ const VaultWidgetWrapped = ({
   // Token decimals for the underlying asset
   const assetDecimals = getTokenDecimals(assetToken, chainId);
 
+  // Deposit-cap enforcement is provider-specific. Spark's vault exposes a real
+  // on-chain supply cap via maxDeposit(user); Morpho V2 vaults return 0n even when
+  // deposits are open, so consulting maxDeposit there would wrongly report every
+  // Morpho vault as "cap reached" and block deposits. Mirror the withdraw side,
+  // which already special-cases Morpho (usesMarketLiquidity below).
+  const enforcesDepositCap = provider !== 'morpho';
+
   // On-chain ERC-4626 limits → effective input caps (revert-proof, no API needed).
   const limits = computeVaultLimits({
     assetBalance: assetBalance?.value,
-    maxDeposit: vaultData?.maxDeposit,
+    maxDeposit: enforcesDepositCap ? vaultData?.maxDeposit : undefined,
     userAssets,
     userShares: vaultData?.userShares,
     maxWithdraw: vaultData?.maxWithdraw
@@ -289,6 +296,7 @@ const VaultWidgetWrapped = ({
   const isOverDepositCap =
     txStatus === TxStatus.IDLE &&
     !!address &&
+    enforcesDepositCap &&
     vaultData?.maxDeposit !== undefined &&
     debouncedAmount > vaultData.maxDeposit &&
     !isSupplyBalanceError &&
