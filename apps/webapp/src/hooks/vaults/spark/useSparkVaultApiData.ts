@@ -4,6 +4,7 @@ import { TRUST_LEVELS, TrustLevelEnum } from '../../constants';
 import type { MorphoVaultRateData } from '../../morpho/useMorphoVaultRateApiData';
 import type {
   NormalizedVaultAllocation,
+  NormalizedVaultHistoryPoint,
   NormalizedVaultMarketData,
   VaultMarketDataHook
 } from '../useVaultMarketData';
@@ -20,6 +21,21 @@ export type SparkVaultApiAllocation = {
   assets: string;
   /** Allocated assets in USD */
   assetsUsd?: number;
+};
+
+/**
+ * One TVL/rate history point as the Spark upstream is expected to expose it.
+ * @see SparkVaultApiPayload
+ */
+export type SparkVaultApiHistoryPoint = {
+  /** Unix timestamp in seconds */
+  timestamp: number;
+  /** Total assets (TVL) at that point, in the smallest asset unit, as a string */
+  totalAssets: string;
+  /** Total assets at that point in USD */
+  totalAssetsUsd?: number;
+  /** Net APY at that point, as a decimal (e.g. 0.05 = 5%) */
+  apy?: number;
 };
 
 /**
@@ -42,6 +58,8 @@ export type SparkVaultApiPayload = {
   totalAssetsUsd?: number;
   /** Optional allocation breakdown */
   allocations?: SparkVaultApiAllocation[];
+  /** Optional TVL/rate history series for the metrics chart */
+  history?: SparkVaultApiHistoryPoint[];
 };
 
 function formatRate(apy: number): string {
@@ -98,6 +116,29 @@ function normalizeAllocations(
   return normalized.length > 0 ? normalized : undefined;
 }
 
+function normalizeHistory(
+  history: SparkVaultApiHistoryPoint[] | undefined
+): NormalizedVaultHistoryPoint[] | undefined {
+  if (!history || history.length === 0) return undefined;
+
+  const normalized: NormalizedVaultHistoryPoint[] = [];
+  for (const point of history) {
+    const amount = parseAssets(point.totalAssets);
+    // A point without a parseable TVL or timestamp can't be plotted — drop it.
+    if (amount === undefined || typeof point.timestamp !== 'number' || Number.isNaN(point.timestamp)) {
+      continue;
+    }
+    normalized.push({
+      blockTimestamp: point.timestamp,
+      amount,
+      amountUsd: point.totalAssetsUsd ?? 0,
+      apy: point.apy !== undefined && !Number.isNaN(point.apy) ? point.apy : undefined
+    });
+  }
+
+  return normalized.length > 0 ? normalized : undefined;
+}
+
 /**
  * Map a raw Spark payload into the provider-neutral normalized shape.
  *
@@ -114,9 +155,10 @@ export function normalizeSparkVaultPayload(
   const totalAssets = parseAssets(payload.totalAssets);
   const rate = normalizeRate(payload.apy, vaultAddress);
   const allocations = normalizeAllocations(payload.allocations, totalAssets);
+  const history = normalizeHistory(payload.history);
 
   // Nothing usable in the payload — treat as empty.
-  if (rate === undefined && totalAssets === undefined && allocations === undefined) {
+  if (rate === undefined && totalAssets === undefined && allocations === undefined && history === undefined) {
     return undefined;
   }
 
@@ -128,7 +170,8 @@ export function normalizeSparkVaultPayload(
     // on-chain `maxWithdraw` (slice 03). Leaving this undefined keeps the stats
     // card's Liquidity row blank ("—") rather than showing a misleading 0.
     liquidity: undefined,
-    allocations
+    allocations,
+    history
   };
 }
 

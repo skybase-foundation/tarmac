@@ -5,7 +5,8 @@ export {
   useSparkVaultApiData,
   normalizeSparkVaultPayload,
   type SparkVaultApiPayload,
-  type SparkVaultApiAllocation
+  type SparkVaultApiAllocation,
+  type SparkVaultApiHistoryPoint
 } from './spark/useSparkVaultApiData';
 export { useErc4626VaultData, type Erc4626VaultData, type Erc4626VaultDataHook } from './useErc4626VaultData';
 export { computeVaultLimits, type VaultLimits, type VaultLimitsInput } from './computeVaultLimits';
@@ -14,5 +15,6 @@ export {
   type UseVaultMarketDataParams,
   type VaultMarketDataHook,
   type NormalizedVaultMarketData,
-  type NormalizedVaultAllocation
+  type NormalizedVaultAllocation,
+  type NormalizedVaultHistoryPoint
 } from './useVaultMarketData';

@@ -9,8 +9,9 @@ import { DetailSection } from '@/modules/ui/components/DetailSection';
 import { DetailSectionRow } from '@/modules/ui/components/DetailSectionRow';
 import { MorphoVaultChart } from './MorphoVaultChart';
 import { useConnectedContext } from '@/modules/ui/context/ConnectedContext';
-import { Token } from '@/hooks';
+import { getVaultByAddress, Token, useVaultMarketData } from '@/hooks';
 import { AboutMorphoVaults } from '@/modules/ui/components/AboutMorphoVaults';
+import { useChainId } from 'wagmi';
 
 type MorphoVaultDetailsProps = {
   /** The Morpho vault contract address */
@@ -27,6 +28,18 @@ export function MorphoVaultDetails({
   vaultName
 }: MorphoVaultDetailsProps): React.ReactElement {
   const { isConnectedAndAcceptedTerms } = useConnectedContext();
+  const chainId = useChainId();
+
+  // Provider drives which data sources the detail sections read from. Defaults to
+  // Morpho if the vault isn't found in the registry (preserves prior behavior).
+  const provider = getVaultByAddress(vaultAddress, chainId)?.provider ?? 'morpho';
+  const isMorpho = provider === 'morpho';
+
+  // Normalized allocations gate the Exposure section for non-Morpho providers:
+  // a Spark vault with no allocation data hides the section entirely. (Deduped
+  // with the chart's own market-data query by react-query.)
+  const { data: marketData } = useVaultMarketData({ provider, vaultAddress });
+  const showExposure = isMorpho || (marketData?.allocations?.length ?? 0) > 0;
 
   const getBannerId = () => {
     if (vaultName.includes('Risk Capital')) {
@@ -56,12 +69,20 @@ export function MorphoVaultDetails({
           <MorphoVaultInfoDetails vaultAddress={vaultAddress} assetToken={assetToken} />
         </DetailSectionRow>
       </DetailSection>
-      <DetailSection title={t`Exposure`}>
-        <DetailSectionRow>
-          <MorphoVaultAllocationsDetails vaultAddress={vaultAddress} />
-        </DetailSectionRow>
-      </DetailSection>
-      {isConnectedAndAcceptedTerms && (
+      {showExposure && (
+        <DetailSection title={t`Exposure`}>
+          <DetailSectionRow>
+            <MorphoVaultAllocationsDetails
+              vaultAddress={vaultAddress}
+              provider={provider}
+              assetToken={assetToken}
+            />
+          </DetailSectionRow>
+        </DetailSection>
+      )}
+      {/* Transaction history is sourced from the Morpho indexer; no Spark history
+          source exists yet, so the section is Morpho-only for now. */}
+      {isConnectedAndAcceptedTerms && isMorpho && (
         <DetailSection title={t`Your ${vaultName} vault transaction history`}>
           <DetailSectionRow>
             <MorphoVaultHistory vaultAddress={vaultAddress} />
@@ -70,7 +91,7 @@ export function MorphoVaultDetails({
       )}
       <DetailSection title={t`Metrics`}>
         <DetailSectionRow>
-          <MorphoVaultChart vaultAddress={vaultAddress} assetToken={assetToken} />
+          <MorphoVaultChart vaultAddress={vaultAddress} assetToken={assetToken} provider={provider} />
         </DetailSectionRow>
       </DetailSection>
       <DetailSection title={t`About`}>

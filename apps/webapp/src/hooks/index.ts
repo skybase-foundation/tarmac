@@ -145,6 +145,7 @@ export {
   normalizeSparkVaultPayload,
   type SparkVaultApiPayload,
   type SparkVaultApiAllocation,
+  type SparkVaultApiHistoryPoint,
   type VaultProvider,
   type VaultConfig,
   type Erc4626VaultData,
@@ -153,6 +154,7 @@ export {
   type VaultMarketDataHook,
   type NormalizedVaultMarketData,
   type NormalizedVaultAllocation,
+  type NormalizedVaultHistoryPoint,
   computeVaultLimits,
   type VaultLimits,
   type VaultLimitsInput

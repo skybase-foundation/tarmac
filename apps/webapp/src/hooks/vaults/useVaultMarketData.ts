@@ -21,6 +21,25 @@ export type NormalizedVaultAllocation = {
 };
 
 /**
+ * One point in a provider-neutral TVL/rate history series.
+ *
+ * Field names/units intentionally match the Morpho chart point
+ * (`MorphoVaultChartDataPoint`) so the shared parse hook
+ * (`useParseMorphoVaultChartData`) and `Chart` component consume either
+ * provider's series untouched.
+ */
+export type NormalizedVaultHistoryPoint = {
+  /** Unix timestamp in seconds */
+  blockTimestamp: number;
+  /** Total assets (TVL) at that point, in the smallest asset unit */
+  amount: bigint;
+  /** Total assets at that point in USD */
+  amountUsd: number;
+  /** Net APY at that point, as a decimal (e.g. 0.05 = 5%) */
+  apy?: number;
+};
+
+/**
  * Provider-neutral normalized market-data contract consumed across providers.
  *
  * Every field is optional: providers fill what they have and the UI degrades
@@ -42,6 +61,13 @@ export type NormalizedVaultMarketData = {
   liquidity?: bigint;
   /** Provider-optional allocations breakdown (lit up for Spark in slice 05) */
   allocations?: NormalizedVaultAllocation[];
+  /**
+   * Provider-optional TVL/rate history series for the metrics chart. Morpho
+   * sources its chart from the dedicated `useMorphoVaultChartInfo` hook and
+   * leaves this undefined; Spark carries its history here in the single
+   * normalized payload.
+   */
+  history?: NormalizedVaultHistoryPoint[];
 };
 
 /** Provider-neutral market-data hook return (normalized). */

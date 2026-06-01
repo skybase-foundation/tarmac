@@ -80,4 +80,64 @@ describe('normalizeSparkVaultPayload', () => {
     expect(result?.rate).toBeUndefined();
     expect(result?.totalAssets).toBe(500n);
   });
+
+  it('normalizes a TVL/rate history series for the chart', () => {
+    const result = normalizeSparkVaultPayload(
+      {
+        apy: 0.05,
+        totalAssets: '300',
+        history: [
+          { timestamp: 1_700_000_000, totalAssets: '100', totalAssetsUsd: 100, apy: 0.04 },
+          { timestamp: 1_700_086_400, totalAssets: '200', totalAssetsUsd: 200, apy: 0.05 }
+        ]
+      },
+      VAULT
+    );
+
+    expect(result?.history).toHaveLength(2);
+    expect(result?.history?.[0]).toEqual({
+      blockTimestamp: 1_700_000_000,
+      amount: 100n,
+      amountUsd: 100,
+      apy: 0.04
+    });
+    // Missing USD defaults to 0; a NaN apy on a point is dropped to undefined.
+    expect(result?.history?.[1].amount).toBe(200n);
+  });
+
+  it('drops unplottable history points (bad TVL, missing/NaN timestamp) and defaults USD', () => {
+    const result = normalizeSparkVaultPayload(
+      {
+        history: [
+          { timestamp: 1_700_000_000, totalAssets: 'oops' }, // bad TVL → dropped
+          { timestamp: NaN, totalAssets: '100' }, // bad timestamp → dropped
+          { timestamp: 1_700_086_400, totalAssets: '150', apy: NaN } // kept; usd→0, apy→undefined
+        ]
+      },
+      VAULT
+    );
+
+    expect(result?.history).toHaveLength(1);
+    expect(result?.history?.[0]).toEqual({
+      blockTimestamp: 1_700_086_400,
+      amount: 150n,
+      amountUsd: 0,
+      apy: undefined
+    });
+  });
+
+  it('treats a history-only payload as usable and an all-bad history as empty', () => {
+    const historyOnly = normalizeSparkVaultPayload(
+      { history: [{ timestamp: 1_700_000_000, totalAssets: '100' }] },
+      VAULT
+    );
+    expect(historyOnly?.history).toHaveLength(1);
+    expect(historyOnly?.rate).toBeUndefined();
+    expect(historyOnly?.totalAssets).toBeUndefined();
+
+    // A payload whose only field is an entirely unparseable history is empty.
+    expect(
+      normalizeSparkVaultPayload({ history: [{ timestamp: 1, totalAssets: 'x' }] }, VAULT)
+    ).toBeUndefined();
+  });
 });
