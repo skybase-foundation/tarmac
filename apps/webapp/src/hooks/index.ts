@@ -132,6 +132,18 @@ export type {
   AllMorphoVaultsUserAssetsData
 } from './morpho';
 
+// Provider-neutral vault core (Morpho + Spark)
+export {
+  useErc4626VaultData,
+  useVaultMarketData,
+  type VaultProvider,
+  type VaultConfig,
+  type Erc4626VaultData,
+  type Erc4626VaultDataHook,
+  type UseVaultMarketDataParams,
+  type VaultMarketDataHook
+} from './vaults';
+
 // Pendle (Fixed Yield)
 export {
   PENDLE_API_BASE_URL,

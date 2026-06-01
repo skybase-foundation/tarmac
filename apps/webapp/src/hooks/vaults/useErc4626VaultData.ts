@@ -6,9 +6,9 @@ import { DataSource, ReadHook } from '../hooks';
 import { chainId, getEtherscanLink, isTestnetId } from '@/utils';
 
 /**
- * Data returned by the useMorphoVaultData hook
+ * Data returned by the useErc4626VaultData hook
  */
-export type MorphoVaultData = {
+export type Erc4626VaultData = {
   /** Total assets held by the vault */
   totalAssets: bigint;
   /** Total supply of vault shares */
@@ -25,27 +25,28 @@ export type MorphoVaultData = {
   decimals: number;
 };
 
-export type MorphoVaultDataHook = ReadHook & {
-  data?: MorphoVaultData;
+export type Erc4626VaultDataHook = ReadHook & {
+  data?: Erc4626VaultData;
 };
 
 /**
- * Hook for fetching Morpho vault data (ERC-4626 compliant).
+ * Provider-neutral hook for fetching ERC-4626 vault data on-chain.
  *
- * Fetches vault-level data (totalAssets, totalSupply, exchange rate) and
- * user-specific data (shares balance, underlying value).
+ * Reads vault-level data (totalAssets, totalSupply, exchange rate) and
+ * user-specific data (shares balance, underlying value) using the generic
+ * ERC-4626 ABI, so it works against any compliant vault (Morpho, Spark, …).
  *
  * Contract reads are split into two batches:
  * 1. General vault data (always fetched)
  * 2. User-specific data (fetched when user is connected)
  *
- * @param vaultAddress - The Morpho vault contract address (required)
+ * @param vaultAddress - The vault contract address (required)
  */
-export function useMorphoVaultOnChainData({
+export function useErc4626VaultData({
   vaultAddress
 }: {
   vaultAddress?: `0x${string}`;
-}): MorphoVaultDataHook {
+}): Erc4626VaultDataHook {
   const { address: userAddress } = useConnection();
   const connectedChainId = useChainId();
   const chainIdToUse = isTestnetId(connectedChainId) ? chainId.tenderly : chainId.mainnet;
@@ -96,7 +97,7 @@ export function useMorphoVaultOnChainData({
   };
 
   // Parse the batched results
-  const parsedData = useMemo<MorphoVaultData | undefined>(() => {
+  const parsedData = useMemo<Erc4626VaultData | undefined>(() => {
     if (!vaultData) return undefined;
 
     const [totalAssetsResult, totalSupplyResult, assetResult, decimalsResult, assetPerShareResult] =
@@ -137,7 +138,8 @@ export function useMorphoVaultOnChainData({
     };
   }, [vaultData, userData]);
 
-  // Data sources for transparency
+  // Data sources for transparency. Title stays Morpho-specific until slice 02
+  // makes it provider-aware (Spark vault registration).
   const dataSources: DataSource[] = vaultAddress
     ? [
         {

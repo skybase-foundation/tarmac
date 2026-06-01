@@ -14,16 +14,16 @@ vi.mock('@/modules/analytics/hooks/useWidgetAnalytics', () => ({
   }
 }));
 
-import { MorphoVaultWidget } from '..';
+import { VaultWidget } from '..';
 
-describe('MorphoVaultWidget widget-name parity', () => {
+describe('VaultWidget widget-name parity', () => {
   beforeEach(() => {
     captured.args = undefined;
   });
 
   it("calls useWidgetAnalytics with the hardcoded widgetName 'vaults'", async () => {
     render(
-      <MorphoVaultWidget
+      <VaultWidget
         vaultAddress="0x0000000000000000000000000000000000000001"
         assetAddress="0x0000000000000000000000000000000000000002"
         assetToken={TOKENS.usdc}

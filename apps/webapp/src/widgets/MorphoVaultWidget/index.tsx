@@ -42,8 +42,8 @@ import { useBatchToggle } from '@/modules/ui/hooks/useBatchToggle';
 import { useNotification } from '@/modules/app/hooks/useNotification';
 import { useWidgetAnalytics } from '@/modules/analytics/hooks/useWidgetAnalytics';
 
-export type MorphoVaultWidgetProps = WidgetProps & {
-  /** The Morpho vault contract address */
+export type VaultWidgetProps = WidgetProps & {
+  /** The vault contract address */
   vaultAddress: `0x${string}`;
   /** The underlying asset token address (e.g., USDC) */
   assetAddress: `0x${string}`;
@@ -55,7 +55,10 @@ export type MorphoVaultWidgetProps = WidgetProps & {
   onBackToVaults?: () => void;
 };
 
-const MorphoVaultWidgetWrapped = ({
+/** @deprecated Use {@link VaultWidgetProps}. Kept as a thin alias. */
+export type MorphoVaultWidgetProps = VaultWidgetProps;
+
+const VaultWidgetWrapped = ({
   vaultAddress,
   assetAddress,
   assetToken,
@@ -65,7 +68,7 @@ const MorphoVaultWidgetWrapped = ({
   onStateValidated,
   onWidgetStateChange,
   onBackToVaults
-}: MorphoVaultWidgetProps) => {
+}: VaultWidgetProps) => {
   const onConnect = useCustomConnectModal();
   const [batchEnabled, setBatchEnabled] = useBatchToggle();
   const onNotification = useNotification();
@@ -581,4 +584,7 @@ const MorphoVaultWidgetWrapped = ({
   );
 };
 
-export const MorphoVaultWidget = withWidgetProvider(MorphoVaultWidgetWrapped, 'MorphoVaultWidget');
+export const VaultWidget = withWidgetProvider(VaultWidgetWrapped, 'MorphoVaultWidget');
+
+/** @deprecated Use {@link VaultWidget}. Kept as a thin alias. */
+export const MorphoVaultWidget = VaultWidget;
