@@ -601,7 +601,8 @@ const VaultWidgetWrapped = ({
               isLiquidityConstrained={isLiquidityConstrained}
               isLiquidityDataUnavailable={isLiquidityDataUnavailable}
               userShares={vaultData?.userShares}
-              isVaultDataLoading={isVaultDataLoading || isMarketDataLoading}
+              // On-chain balance + TVL; not gated on isMarketDataLoading (that made the Spark stats slow).
+              isVaultDataLoading={isVaultDataLoading}
               onChange={(newValue: bigint, userTriggered?: boolean) => {
                 setAmount(newValue);
                 if (userTriggered) {
