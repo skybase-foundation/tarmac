@@ -22,6 +22,30 @@ import {
   VaultBalanceForAccordion
 } from '@/widgets/shared/components/ui/card/InteractiveStatsCardWithVaultAccordion';
 import { UnclaimedRewards } from '@/widgets/shared/components/ui/UnclaimedRewards';
+import { vaultModuleForProvider } from '@/lib/vaults/vaultProviderMapping';
+import { VaultProvider } from '@/hooks/vaults/types';
+
+/**
+ * Build the vault-address → deep-link map. Each link carries the target vault's
+ * own provider in `vault_module` (derived via the slice-01 mapping), so a Spark
+ * vault link reads `vault_module=spark` and a Morpho one `vault_module=morpho`.
+ */
+export const buildVaultDeepLinkMap = (
+  url: string | undefined,
+  vaults: { vaultAddress: `0x${string}`; vault: { provider: VaultProvider } }[]
+): Record<string, string> => {
+  const map: Record<string, string> = {};
+  vaults.forEach(v => {
+    if (!url) {
+      map[v.vaultAddress] = '';
+      return;
+    }
+    const separator = url.includes('?') ? '&' : '?';
+    map[v.vaultAddress] =
+      `${url}${separator}vault=${v.vaultAddress}&vault_module=${vaultModuleForProvider(v.vault.provider)}`;
+  });
+  return map;
+};
 
 export const VaultsBalanceCard = ({
   url,
@@ -136,18 +160,7 @@ export const VaultsBalanceCard = ({
   // Build URL map for vaults with vault-specific query params
   const urlMap = useMemo(() => {
     if (vaultUrlMap) return vaultUrlMap;
-    // Create a map with vault address query param appended to base url
-    const map: Record<string, string> = {};
-    morphoAssetsData.vaults.forEach(v => {
-      if (!url) {
-        map[v.vaultAddress] = '';
-        return;
-      }
-      // Parse the base URL and append vault query param
-      const separator = url.includes('?') ? '&' : '?';
-      map[v.vaultAddress] = `${url}${separator}vault=${v.vaultAddress}&vault_module=morpho`;
-    });
-    return map;
+    return buildVaultDeepLinkMap(url, morphoAssetsData.vaults);
   }, [vaultUrlMap, morphoAssetsData.vaults, url]);
 
   return variant === ModuleCardVariant.default ? (
