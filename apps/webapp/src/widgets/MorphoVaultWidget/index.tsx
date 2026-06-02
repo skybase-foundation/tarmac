@@ -467,8 +467,12 @@ const VaultWidgetWrapped = ({
     vaultName
   ]);
 
+  // The liquidity disclaimer describes Morpho's lending markets (deposits fund
+  // borrowing); it does not apply to the Spark vault, so only Morpho shows/enforces it.
   const shouldEnforceDisclaimer =
-    widgetState.action === MorphoVaultAction.SUPPLY && widgetState.screen === MorphoVaultScreen.ACTION;
+    provider === 'morpho' &&
+    widgetState.action === MorphoVaultAction.SUPPLY &&
+    widgetState.screen === MorphoVaultScreen.ACTION;
   const isDisabledForDisclaimer = shouldEnforceDisclaimer && !disclaimerChecked;
 
   // Set widget button disabled state
@@ -632,7 +636,7 @@ const VaultWidgetWrapped = ({
               shareDecimals={vaultData?.decimals ?? 18}
               availableLiquidity={availableLiquidity}
               disclaimerChecked={disclaimerChecked}
-              onDisclaimerChange={setDisclaimerChecked}
+              onDisclaimerChange={provider === 'morpho' ? setDisclaimerChecked : undefined}
             />
           </CardAnimationWrapper>
         )}

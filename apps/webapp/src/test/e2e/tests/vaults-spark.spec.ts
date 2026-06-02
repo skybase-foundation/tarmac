@@ -49,10 +49,6 @@ test.describe('Vaults - Spark Tether Savings (sUSDT)', () => {
     await expect(isolatedPage.getByText('You will supply')).toBeVisible();
     await expect(isolatedPage.getByText(`${supplyAmount} USDT`)).toBeVisible();
 
-    // Liquidity disclaimer must be acknowledged before review
-    const disclaimer = isolatedPage.locator('label').filter({ hasText: 'I understand that' });
-    await disclaimer.click();
-
     await performAction(isolatedPage, 'Supply');
 
     // Return to the vault and verify the supplied balance increased
@@ -70,7 +66,6 @@ test.describe('Vaults - Spark Tether Savings (sUSDT)', () => {
     const supplyAmount = 20;
     await isolatedPage.getByTestId('supply-input-spark').click();
     await isolatedPage.getByTestId('supply-input-spark').fill(supplyAmount.toString());
-    await isolatedPage.locator('label').filter({ hasText: 'I understand that' }).click();
     await performAction(isolatedPage, 'Supply');
     await isolatedPage
       .getByRole('button', { name: new RegExp(`Back to ${VAULT_NAME}`, 'i') })
@@ -94,7 +89,6 @@ test.describe('Vaults - Spark Tether Savings (sUSDT)', () => {
     const supplyAmount = 30;
     await isolatedPage.getByTestId('supply-input-spark').click();
     await isolatedPage.getByTestId('supply-input-spark').fill(supplyAmount.toString());
-    await isolatedPage.locator('label').filter({ hasText: 'I understand that' }).click();
     await performAction(isolatedPage, 'Supply');
     await isolatedPage
       .getByRole('button', { name: new RegExp(`Back to ${VAULT_NAME}`, 'i') })
