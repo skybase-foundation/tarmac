@@ -476,8 +476,7 @@ const PendleWidgetWrapped = ({ market, rightHeaderComponent, onBackToPendle }: P
           </Heading>
           <Text className="text-textSecondary" variant="small">
             <Trans>
-              Lock in fixed yield by buying PT-{market.underlyingSymbol}. Each PT redeems 1:1 for{' '}
-              {market.underlyingSymbol} at maturity.
+              Know your return by a pre-set maturity date. Each PT redeems 1:1 for USDS at maturity.
             </Trans>
           </Text>
         </div>
