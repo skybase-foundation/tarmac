@@ -12,7 +12,8 @@ import { HStack } from '@/modules/layout/components/HStack';
 import { TokenIcon } from '@/modules/ui/components/TokenIcon';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useChainId } from 'wagmi';
+import { useChainId, useReadContract } from 'wagmi';
+import { erc20Abi } from 'viem';
 import { MorphoRateBreakdownPopover, VaultPoweredByBadge } from '@/widgets';
 import { Trans } from '@lingui/react/macro';
 
@@ -44,15 +45,34 @@ export const MorphoVaultStatsCard = ({
     vaultAddress: currentVaultAddress
   });
 
-  // On-chain TVL fallback for providers without a market-data source yet (Spark).
-  // Disabled for Morpho (it reads TVL from its API) so Morpho cards add no RPC calls.
+  // On-chain TVL + liquidity for providers without a market-data source yet (Spark).
+  // Disabled for Morpho (it reads these from its API) so Morpho cards add no RPC calls.
   const { data: onChainData, isLoading: onChainLoading } = useErc4626VaultData({
     vaultAddress: provider === 'morpho' ? undefined : currentVaultAddress,
     provider
   });
 
+  // Withdrawable liquidity = the USDT the vault currently holds (its un-deployed buffer).
+  // TODO: revisit once the Spark API is live — its official liquidity figure may differ from this
+  // on-chain balance (e.g. it could include funds recallable from the ALM). The dispatcher already
+  // prefers `marketData?.liquidity` when present, so this on-chain read is just the fallback.
+  const assetAddress = assetToken.address[chainId as keyof typeof assetToken.address];
+  const { data: onChainLiquidity, isLoading: onChainLiquidityLoading } = useReadContract({
+    address: provider === 'morpho' ? undefined : assetAddress,
+    abi: erc20Abi,
+    functionName: 'balanceOf',
+    args: currentVaultAddress ? [currentVaultAddress] : undefined,
+    chainId,
+    query: { enabled: provider !== 'morpho' && !!assetAddress && !!currentVaultAddress }
+  });
+
+  // Morpho sources TVL + liquidity from its market API; other providers (Spark) read them
+  // on-chain so the card never hangs on a missing/placeholder API.
+  const isExternalProvider = provider !== 'morpho';
   const totalAssets = marketData?.totalAssets ?? onChainData?.totalAssets;
-  const tvlLoading = marketDataLoading || (marketData?.totalAssets === undefined && onChainLoading);
+  const tvlLoading = isExternalProvider ? onChainLoading : marketDataLoading;
+  const liquidity = marketData?.liquidity ?? onChainLiquidity;
+  const liquidityLoading = isExternalProvider ? onChainLiquidityLoading : marketDataLoading;
 
   if (!currentVaultAddress) {
     return null;
@@ -85,15 +105,14 @@ export const MorphoVaultStatsCard = ({
             <Text className="text-textSecondary text-sm leading-4">
               <Trans>Liquidity</Trans>
             </Text>
-            {marketDataLoading ? (
+            {liquidityLoading ? (
               <Skeleton className="h-4 w-21" />
-            ) : marketData?.liquidity !== undefined ? (
-              <Text dataTestId="morpho-vault-tvl">
-                {formatBigInt(marketData.liquidity, { unit: assetDecimals, compact: true })}{' '}
-                {assetToken.symbol}
+            ) : liquidity !== undefined ? (
+              <Text dataTestId="morpho-vault-liquidity">
+                {formatBigInt(liquidity, { unit: assetDecimals, compact: true })} {assetToken.symbol}
               </Text>
             ) : (
-              <Text dataTestId="morpho-vault-tvl">—</Text>
+              <Text dataTestId="morpho-vault-liquidity">—</Text>
             )}
           </VStack>
           {/* TVL */}
