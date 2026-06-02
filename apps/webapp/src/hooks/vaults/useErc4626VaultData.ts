@@ -4,6 +4,7 @@ import { usdsRiskCapitalVaultAbi } from '../generated';
 import { TRUST_LEVELS, TrustLevelEnum, ZERO_ADDRESS } from '../constants';
 import { DataSource, ReadHook } from '../hooks';
 import { VaultProvider } from './types';
+import { sharesToAssets } from './sharesToAssets';
 import { chainId, getEtherscanLink, isTestnetId } from '@/utils';
 
 /** Human-readable data-source label per provider for the on-chain vault contract. */
@@ -151,9 +152,9 @@ export function useErc4626VaultData({
     const maxWithdraw = userData?.[2]?.status === 'success' ? userData[2].result : undefined;
     const maxRedeem = userData?.[3]?.status === 'success' ? userData[3].result : undefined;
 
-    // Calculate userAssets using convertToAssets formula: shares * assetPerShare / 10^decimals
-    // assetPerShare is the result of convertToAssets(10^18), so we need to adjust for decimals
-    const userAssets = userShares > 0n ? (userShares * assetPerShare) / 10n ** BigInt(decimals) : 0n;
+    // assetPerShare is convertToAssets(10^18); convert via the queried 10^18 scale (NOT the
+    // share decimals — those only coincide for 18-decimal vaults; sUSDT shares are 6-decimal).
+    const userAssets = sharesToAssets(userShares, assetPerShare);
 
     return {
       totalAssets,

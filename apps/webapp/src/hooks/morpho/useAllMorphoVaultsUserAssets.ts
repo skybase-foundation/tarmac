@@ -4,6 +4,7 @@ import { usdsRiskCapitalVaultAbi } from '../generated';
 import { VAULTS } from '../vaults/constants';
 import { MorphoVaultConfig } from './morpho';
 import { ZERO_ADDRESS } from '../constants';
+import { sharesToAssets } from '../vaults/sharesToAssets';
 import { chainId, isTestnetId } from '@/utils';
 import { ReadHook } from '../hooks';
 import { Token } from '../tokens/types';
@@ -97,10 +98,9 @@ export function useAllMorphoVaultsUserAssets(): ReadHook & { data: AllMorphoVaul
       ) {
         const shares = sharesResult.result as bigint;
         const assetPerShare = assetPerShareResult.result as bigint;
-        const shareDecimals = decimalsResult.result as number;
 
-        // userAssets in the asset's native decimals
-        const userAssets = shares > 0n ? (shares * assetPerShare) / 10n ** BigInt(shareDecimals) : 0n;
+        // userAssets in the asset's native decimals (÷ the queried 10^18 scale, not share decimals).
+        const userAssets = sharesToAssets(shares, assetPerShare);
 
         // Normalize to 18 decimals
         const assetDecimals = getTokenDecimals(vault.assetToken.decimals, chainIdToUse);
