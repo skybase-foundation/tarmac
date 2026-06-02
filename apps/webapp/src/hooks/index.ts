@@ -136,6 +136,7 @@ export type {
 export {
   useErc4626VaultData,
   useVaultMarketData,
+  useSparkVaultRate,
   VAULTS,
   getVaultByAddress,
   SPARK_VAULTS,

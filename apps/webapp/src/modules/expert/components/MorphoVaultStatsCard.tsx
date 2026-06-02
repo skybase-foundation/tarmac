@@ -14,7 +14,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useChainId, useReadContract } from 'wagmi';
 import { erc20Abi } from 'viem';
-import { MorphoRateBreakdownPopover, VaultPoweredByBadge } from '@/widgets';
+import { MorphoRateBreakdownPopover, SparkVaultRate, VaultPoweredByBadge } from '@/widgets';
 import { Trans } from '@lingui/react/macro';
 
 type MorphoVaultStatsCardProps = {
@@ -92,9 +92,11 @@ export const MorphoVaultStatsCard = ({
           <VaultPoweredByBadge provider={provider} />
         </HStack>
 
-        {/* Right side - Rate (Morpho-API sourced; only shown for Morpho vaults) */}
-        {provider === 'morpho' && (
+        {/* Right side - Rate: Morpho from its API, Spark from the on-chain Vault Savings Rate. */}
+        {provider === 'morpho' ? (
           <MorphoRateBreakdownPopover vaultAddress={currentVaultAddress} tooltipIconClassName="w-3 h-3" />
+        ) : (
+          <SparkVaultRate vaultAddress={currentVaultAddress} iconClassName="w-3 h-3" />
         )}
       </CardHeader>
 

@@ -61,6 +61,7 @@ export { TokenDropdown } from './shared/components/ui/token/TokenDropdown';
 export { TransactionOverview } from './shared/components/ui/transaction/TransactionOverview';
 export { VaultPoweredByBadge, MorphoVaultBadge } from './MorphoVaultWidget/components/MorphoVaultBadge';
 export { MorphoRateBreakdownPopover } from './MorphoVaultWidget/components/MorphoRateBreakdownPopover';
+export { SparkVaultRate } from './MorphoVaultWidget/components/SparkVaultRate';
 export type { TradeToken, NativeCurrency } from './TradeWidget/lib/types';
 export { formatUrnIndex } from './SealModuleWidget/lib/utils';
 export { defaultConfig } from './config/default-config';

@@ -5,6 +5,7 @@ import { Text } from '@/widgets/shared/components/ui/Typography';
 import { positionAnimations } from '@/widgets/shared/animation/presets';
 import { JSX } from 'react';
 import { MorphoRateBreakdownPopover } from './MorphoRateBreakdownPopover';
+import { SparkVaultRate } from './SparkVaultRate';
 import { VaultPoweredByBadge } from './MorphoVaultBadge';
 import type { VaultProvider } from '@/hooks';
 
@@ -39,10 +40,10 @@ export const MorphoVaultStatsCardCore = ({
       }
       headerRightContent={
         <MotionHStack className="items-center" gap={2} variants={positionAnimations}>
-          {/* Rate breakdown is sourced from the Morpho API; only shown for Morpho vaults. */}
-          {provider === 'morpho' && vaultAddress && (
-            <MorphoRateBreakdownPopover vaultAddress={vaultAddress} />
-          )}
+          {/* Rate: Morpho from its API, Spark from the on-chain Vault Savings Rate. */}
+          {provider === 'morpho'
+            ? vaultAddress && <MorphoRateBreakdownPopover vaultAddress={vaultAddress} />
+            : vaultAddress && <SparkVaultRate vaultAddress={vaultAddress} />}
         </MotionHStack>
       }
       content={content}

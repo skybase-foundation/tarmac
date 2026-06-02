@@ -6,6 +6,7 @@ import {
   Token,
   useMorphoVaultOnChainData,
   useVaultMarketData,
+  useSparkVaultRate,
   computeVaultLimits,
   usdtAddress,
   type VaultProvider
@@ -106,6 +107,11 @@ const VaultWidgetWrapped = ({
   const { data: marketData, isLoading: isMarketDataLoading } = useVaultMarketData({
     provider,
     vaultAddress
+  });
+
+  // Spark exposes its rate on-chain (Vault Savings Rate); read it directly instead of the API.
+  const { formattedRate: sparkRate } = useSparkVaultRate({
+    vaultAddress: provider === 'spark' ? vaultAddress : undefined
   });
 
   const userAssets = vaultData?.userAssets ?? 0n;
@@ -633,7 +639,7 @@ const VaultWidgetWrapped = ({
               vaultName={vaultName}
               provider={provider}
               vaultTvl={vaultData?.totalAssets}
-              vaultRate={marketData?.rate?.formattedNetRate}
+              vaultRate={marketData?.rate?.formattedNetRate ?? sparkRate}
               shareDecimals={vaultData?.decimals ?? 18}
               availableLiquidity={availableLiquidity}
               disclaimerChecked={disclaimerChecked}
