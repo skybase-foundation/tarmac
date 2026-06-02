@@ -1,5 +1,6 @@
 import { RewardsModule, Savings, Trade, Upgrade, Seal, Expert, Vaults, Convert } from '@/modules/icons';
 import { ConvertIntent, ExpertIntent, Intent, FixedIntent, VaultsIntent } from './enums';
+import { vaultModuleForVaultsIntent } from './vaults/vaultProviderMapping';
 import { msg } from '@lingui/core/macro';
 import { MessageDescriptor } from '@lingui/core';
 import { base, mainnet, arbitrum, unichain, optimism } from 'viem/chains';
@@ -54,7 +55,8 @@ export const ExpertIntentMapping: Record<ExpertIntent, string> = {
 };
 
 export const VaultsIntentMapping: Record<VaultsIntent, string> = {
-  [VaultsIntent.MORPHO_VAULT_INTENT]: 'morpho'
+  [VaultsIntent.MORPHO_VAULT_INTENT]: vaultModuleForVaultsIntent(VaultsIntent.MORPHO_VAULT_INTENT),
+  [VaultsIntent.SPARK_VAULT_INTENT]: vaultModuleForVaultsIntent(VaultsIntent.SPARK_VAULT_INTENT)
 };
 
 export const ConvertIntentMapping: Record<ConvertIntent, string> = {

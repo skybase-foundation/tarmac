@@ -17,7 +17,8 @@ export enum ExpertIntent {
 }
 
 export enum VaultsIntent {
-  MORPHO_VAULT_INTENT = 'MORPHO_VAULT_INTENT'
+  MORPHO_VAULT_INTENT = 'MORPHO_VAULT_INTENT',
+  SPARK_VAULT_INTENT = 'SPARK_VAULT_INTENT'
 }
 
 export enum ConvertIntent {
