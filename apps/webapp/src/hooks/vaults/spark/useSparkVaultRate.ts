@@ -1,18 +1,9 @@
 import { useReadContract, useChainId } from 'wagmi';
 import { chainId, isTestnetId, formatStrAsApy } from '@/utils';
+import { sparkVaultAbi } from '@/hooks/abis/sparkVaultAbi';
 
-// Minimal ABI for the SparkVault's Vault Savings Rate getter. `vsr` is a per-second rate in
-// RAY (1e27 = 0% APY) — the same accumulator pattern the Sky Savings Rate uses — so the APY is
-// derivable on-chain with no off-chain API. (The generic ERC-4626 ABI doesn't include it.)
-const SPARK_VAULT_VSR_ABI = [
-  {
-    type: 'function',
-    name: 'vsr',
-    stateMutability: 'view',
-    inputs: [],
-    outputs: [{ name: '', type: 'uint256' }]
-  }
-] as const;
+// `vsr` is the Vault Savings Rate: a per-second rate in RAY (1e27 = 0% APY), the same accumulator
+// pattern the Sky Savings Rate uses — so the APY is derivable on-chain with no off-chain API.
 
 /**
  * Reads the Spark vault's on-chain Vault Savings Rate (`vsr`) and converts it to an APY string,
@@ -27,7 +18,7 @@ export function useSparkVaultRate({ vaultAddress }: { vaultAddress?: `0x${string
 
   const { data: vsr, isLoading } = useReadContract({
     address: vaultAddress,
-    abi: SPARK_VAULT_VSR_ABI,
+    abi: sparkVaultAbi,
     functionName: 'vsr',
     chainId: chainIdToUse,
     query: { enabled: !!vaultAddress }
