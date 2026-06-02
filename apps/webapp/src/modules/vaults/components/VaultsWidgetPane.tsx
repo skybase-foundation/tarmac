@@ -6,7 +6,9 @@ import { Heading, Text } from '@/modules/layout/components/Typography';
 import { Trans } from '@lingui/react/macro';
 import { AnimatePresence, motion } from 'motion/react';
 import { MorphoVaultWidgetPane } from '@/modules/morpho/components/MorphoVaultWidgetPane';
-import { VaultsIntentMapping, QueryParams } from '@/lib/constants';
+import { QueryParams } from '@/lib/constants';
+import { vaultModuleForProvider, vaultsIntentForProvider } from '@/lib/vaults/vaultProviderMapping';
+import { VaultProvider } from '@/hooks/vaults/types';
 import { useSearchParams } from 'react-router-dom';
 import { MorphoVaultStatsCard } from '@/modules/expert/components/MorphoVaultStatsCard';
 import { VAULTS, useAllMorphoVaultsUserAssets } from '@/hooks';
@@ -55,13 +57,15 @@ export function VaultsWidgetPane(sharedProps: SharedProps) {
     ? VaultsIntent.MORPHO_VAULT_INTENT
     : selectedVaultsOption;
 
-  const handleSelectMorphoVault = (vaultAddress: `0x${string}`) => {
+  // Derive the URL/routing identity from the selected vault's provider so the
+  // param reflects the vault the user opened (Spark → `spark`, Morpho → `morpho`).
+  const handleSelectVault = (vaultAddress: `0x${string}`, provider: VaultProvider) => {
     setSearchParams(params => {
-      params.set(QueryParams.VaultModule, VaultsIntentMapping[VaultsIntent.MORPHO_VAULT_INTENT]);
+      params.set(QueryParams.VaultModule, vaultModuleForProvider(provider));
       params.set(QueryParams.Vault, vaultAddress);
       return params;
     });
-    setSelectedVaultsOption(VaultsIntent.MORPHO_VAULT_INTENT);
+    setSelectedVaultsOption(vaultsIntentForProvider(provider));
   };
 
   const renderSelectedWidget = () => {
@@ -116,7 +120,7 @@ export function VaultsWidgetPane(sharedProps: SharedProps) {
                         vaultName={vault.name}
                         assetToken={vault.assetToken}
                         provider={vault.provider}
-                        onClick={() => handleSelectMorphoVault(vaultAddressForChain)}
+                        onClick={() => handleSelectVault(vaultAddressForChain, vault.provider)}
                       />
                     );
                   })}
@@ -137,7 +141,7 @@ export function VaultsWidgetPane(sharedProps: SharedProps) {
                         vaultName={vault.name}
                         assetToken={vault.assetToken}
                         provider={vault.provider}
-                        onClick={() => handleSelectMorphoVault(vaultAddressForChain)}
+                        onClick={() => handleSelectVault(vaultAddressForChain, vault.provider)}
                       />
                     );
                   })}

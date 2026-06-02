@@ -16,13 +16,13 @@ import {
   QueryParams,
   IntentMapping,
   ExpertIntentMapping,
-  VaultsIntentMapping,
   ConvertIntentMapping,
   FixedIntentMapping
 } from '@/lib/constants';
+import { vaultModuleForProvider } from '@/lib/vaults/vaultProviderMapping';
 import { useGeoConfig } from '@/modules/geo-config';
 import { ModuleId } from '@/modules/geo-config/types';
-import { ExpertIntent, VaultsIntent, ConvertIntent, FixedIntent } from '@/lib/enums';
+import { ExpertIntent, ConvertIntent, FixedIntent } from '@/lib/enums';
 import { WidgetNavigation } from '@/modules/app/components/WidgetNavigation';
 import { withErrorBoundary } from '@/modules/utils/withErrorBoundary';
 import { DualSwitcher } from '@/components/DualSwitcher';
@@ -136,7 +136,7 @@ export const WidgetPane = ({ intent, children }: WidgetPaneProps) => {
     label: vault.name,
     icon: <TokenIcon token={{ symbol: vault.assetToken.symbol }} className="h-3 w-3" showChainIcon={false} />,
     params: {
-      [QueryParams.VaultModule]: VaultsIntentMapping[VaultsIntent.MORPHO_VAULT_INTENT],
+      [QueryParams.VaultModule]: vaultModuleForProvider(vault.provider),
       [QueryParams.Vault]: vault.vaultAddress[vaultChainId]
     }
   }));
