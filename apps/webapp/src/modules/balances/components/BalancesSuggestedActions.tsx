@@ -1,7 +1,8 @@
 import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useChainId, useChains } from 'wagmi';
-import { QueryParams, mapQueryParamToIntent } from '@/lib/constants';
+import { QueryParams, mapQueryParamToIntent, isNewIntent } from '@/lib/constants';
+import { Intent } from '@/lib/enums';
 import { normalizeUrlParam } from '@/lib/helpers/string/normalizeUrlParam';
 import { isMultichain } from '@/lib/widget-network-map';
 import { useNetworkSwitch } from '@/modules/ui/context/NetworkSwitchContext';
@@ -394,7 +395,7 @@ export function BalancesSuggestedActions({
       subtitle: activeMarkets.length === 1 ? 'Rate: {rate}' : 'Rates up to {rate}',
       module: 'fixedYield',
       url: '?widget=fixed',
-      badge: 'New'
+      badge: isNewIntent(Intent.FIXED_INTENT) ? 'New' : undefined
     };
   }, []);
 
