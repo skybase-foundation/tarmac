@@ -12,6 +12,7 @@ import {
   type VaultProvider
 } from '@/hooks';
 import { useDebounce } from '@/hooks';
+import { resolveSparkVaultRate } from '@/lib/vaults/sparkVaultRate';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { WidgetContainer } from '@/widgets/shared/components/ui/widget/WidgetContainer';
 import { MorphoVaultFlow, MorphoVaultAction, MorphoVaultScreen } from './lib/constants';
@@ -639,7 +640,10 @@ const VaultWidgetWrapped = ({
               vaultName={vaultName}
               provider={provider}
               vaultTvl={vaultData?.totalAssets}
-              vaultRate={marketData?.rate?.formattedNetRate ?? sparkRate}
+              vaultRate={resolveSparkVaultRate({
+                apiFormattedRate: marketData?.rate?.formattedNetRate,
+                onChainFormattedRate: sparkRate
+              })}
               shareDecimals={vaultData?.decimals ?? 18}
               availableLiquidity={availableLiquidity}
               disclaimerChecked={disclaimerChecked}

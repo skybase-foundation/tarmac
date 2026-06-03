@@ -1,16 +1,20 @@
 import { Skeleton } from '@/widgets/components/ui/skeleton';
 import { Text } from '@/widgets/shared/components/ui/Typography';
 import { PopoverRateInfo } from '@/widgets/shared/components/ui/PopoverRateInfo';
-import { useSparkVaultRate } from '@/hooks';
+import { useSparkVaultResolvedRate } from '@/hooks';
 
 /**
- * Spark vault APY, read on-chain from the Vault Savings Rate (`vsr`), shown the same way as the
- * Morpho rate: the value followed by an (i) info icon. Uses the exact same `PopoverRateInfo`
- * component (and icon size/props) as `MorphoRateBreakdownPopover` so the two cards match.
+ * Spark vault APY shown the same way as the Morpho rate: the value followed by an (i) info icon.
+ * Uses the exact same `PopoverRateInfo` component (and icon size/props) as
+ * `MorphoRateBreakdownPopover` so the two cards match.
  *
- * TODO: the (i) popover carries a placeholder note. The on-chain VSR reads 0% until Spark activates
- * the vault; confirm with Spark whether to surface the SSR floor / their data-hub rate instead,
- * then replace this `tooltipOverride` with real rate-breakdown copy (ideally a dedicated tooltip id).
+ * The rate is the single resolved source of truth (`useSparkVaultResolvedRate`): the Spark Savings
+ * API `apy` when present, falling back to the on-chain Vault Savings Rate (`vsr`). Every Spark-rate
+ * surface reads this resolution, so the header/card can never disagree with the transaction overview.
+ *
+ * TODO: the (i) popover carries a placeholder note. The rate reads 0% until Spark activates the
+ * vault; confirm with Spark whether to surface the SSR floor / their data-hub rate instead, then
+ * replace this `tooltipOverride` with real rate-breakdown copy (ideally a dedicated tooltip id).
  */
 export function SparkVaultRate({
   vaultAddress,
@@ -19,7 +23,7 @@ export function SparkVaultRate({
   vaultAddress?: `0x${string}`;
   iconClassName?: string;
 }) {
-  const { formattedRate, isLoading } = useSparkVaultRate({ vaultAddress });
+  const { formattedRate, isLoading } = useSparkVaultResolvedRate({ vaultAddress });
 
   if (isLoading) return <Skeleton className="h-4 w-20" />;
   if (!formattedRate) return null;
