@@ -56,20 +56,43 @@ export const PendleRedeem = ({
   // and broader DeFi conventions). The raw quote.priceImpact stays unflipped
   // for analytics/debugging.
 
-  const transactionData = quote
+  // Section 1 "Transaction overview" (expanded by default): the two numbers
+  // the user came for — how much PT they're redeeming, and how much USDS/USDC
+  // they're getting. Per APP-268.
+  const pinnedData = quote
     ? [
         {
-          label: t`Min. received`,
-          value: `${formatBigInt(quote.apiMinOut, { unit: outDecimals, maxDecimals: 4 })} ${selectedOutputToken.symbol}`
+          label: t`You redeem`,
+          value: `${formattedPt} ${ptSymbol}`
         },
         {
-          label: t`Slippage tolerance`,
-          value: `${formatNumber(slippage * 100, { maxDecimals: 2 })}%`
-        },
-        {
-          label: t`Price impact`,
-          value: `${formatNumber(-quote.priceImpact * 100, { maxDecimals: 3 })}%`
-        },
+          label: t`You receive`,
+          value: `${formatBigInt(quote.amountOut, { unit: outDecimals, maxDecimals: 4 })} ${selectedOutputToken.symbol}`
+        }
+      ]
+    : undefined;
+
+  // Section 2 "Transaction details" (collapsed by default).
+  const transactionData = quote
+    ? [
+        // Slippage / price impact / Min. received only matter on aggregator
+        // hops; pure PT-burn at the SY's expiry-frozen rate has no swap math.
+        ...(aggregatorName
+          ? [
+              {
+                label: t`Min. received`,
+                value: `${formatBigInt(quote.apiMinOut, { unit: outDecimals, maxDecimals: 4 })} ${selectedOutputToken.symbol}`
+              },
+              {
+                label: t`Slippage tolerance`,
+                value: `${formatNumber(slippage * 100, { maxDecimals: 2 })}%`
+              },
+              {
+                label: t`Price impact`,
+                value: `${formatNumber(-quote.priceImpact * 100, { maxDecimals: 3 })}%`
+              }
+            ]
+          : []),
         ...(breakdown
           ? [
               {
@@ -173,6 +196,7 @@ export const PendleRedeem = ({
         title={t`Transaction overview`}
         isFetching={isFetchingQuote && !quote}
         fetchingMessage={t`Fetching quote from Pendle`}
+        pinnedData={pinnedData}
         transactionData={transactionData}
       />
     </div>

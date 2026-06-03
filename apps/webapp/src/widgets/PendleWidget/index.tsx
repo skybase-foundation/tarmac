@@ -37,7 +37,9 @@ import { PendleAction, PendleFlow, PendleScreen } from './lib/constants';
 import { usePendleSlippage } from './hooks/usePendleSlippage';
 import { usePendleTokens } from './hooks/usePendleTokens';
 import { usePendleTransactionCallbacks } from './hooks/usePendleTransactionCallbacks';
+import { usePendleUsdValue } from './hooks/usePendleUsdValue';
 import { pendleAnalyticsData } from './lib/pendleAnalyticsData';
+import { pendleNonPtLeg } from './lib/pendleUsdValue';
 import { SupplyWithdraw } from './components/SupplyWithdraw';
 import { PendleConfigMenu } from './components/PendleConfigMenu';
 import { PendlePoweredBy } from './components/PendlePoweredBy';
@@ -53,7 +55,7 @@ import { useWidgetAnalytics } from '@/modules/analytics/hooks/useWidgetAnalytics
 export type PendleWidgetProps = WidgetProps & {
   /** Selected Pendle market — passed in by the webapp module after URL-driven selection. */
   market: PendleMarketConfig;
-  /** When provided, renders a "Back to Pendle" link above the heading. The webapp module
+  /** When provided, renders a "Back to Fixed Yield" link above the heading. The webapp module
    * uses this to clear the market query params and return to the overview list. */
   onBackToPendle?: () => void;
 };
@@ -64,6 +66,9 @@ const PendleWidgetWrapped = ({ market, rightHeaderComponent, onBackToPendle }: P
   const onNotification = useNotification();
   const chainId = useChainId();
   const onAnalyticsEvent = useWidgetAnalytics('fixed', chainId);
+  // Values the user's non-PT leg in USD for the analytics `amount` property —
+  // sUSDS isn't $1, so a token count would mis-sum the inflow/outflow tiles.
+  const valueUsd = usePendleUsdValue();
   const { address, isConnected, isConnecting } = useConnection();
   const { isConnectedAndAcceptedTerms: enabled } = useConnectedContext();
   const { onExternalLinkClicked } = useConfigContext();
@@ -187,6 +192,7 @@ const PendleWidgetWrapped = ({ market, rightHeaderComponent, onBackToPendle }: P
     inputToken,
     outputToken,
     underlyingToken: market.underlyingToken,
+    syAcceptedTokens: market.syAcceptedTokens,
     amountIn: debouncedAmount > 0n ? debouncedAmount : undefined,
     slippage,
     enabled: debouncedAmount > 0n && debounceSettled
@@ -201,7 +207,7 @@ const PendleWidgetWrapped = ({ market, rightHeaderComponent, onBackToPendle }: P
     // generic "service unavailable" copy would be misleading — the user
     // just needs to enter a larger amount.
     if (/input valuation is too low/i.test(raw)) {
-      return t`Enter at least $0.01 to continue.`;
+      return t`Input amount is too low. Please try a larger amount.`;
     }
     if (/no routes/i.test(raw)) {
       return t`No route available for this trade size. Try a different amount.`;
@@ -258,7 +264,8 @@ const PendleWidgetWrapped = ({ market, rightHeaderComponent, onBackToPendle }: P
     refetchOutputBalance,
     refetchPtBalance,
     onNotification,
-    onAnalyticsEvent
+    onAnalyticsEvent,
+    valueUsd
   });
 
   const batchConvert = useBatchPendleConvert({
@@ -267,6 +274,7 @@ const PendleWidgetWrapped = ({ market, rightHeaderComponent, onBackToPendle }: P
     inputToken,
     outputToken,
     underlyingToken: market.underlyingToken,
+    syAcceptedTokens: market.syAcceptedTokens,
     amountIn: debouncedAmount > 0n ? debouncedAmount : undefined,
     quote,
     slippage,
@@ -314,11 +322,22 @@ const PendleWidgetWrapped = ({ market, rightHeaderComponent, onBackToPendle }: P
 
     try {
       const analyticsFlow = side === PendleConvertSide.BUY ? 'supply' : 'withdraw';
+      const analyticsSide = side === PendleConvertSide.BUY ? 'buy' : 'sell';
+      // `amount` = USD value of the non-PT leg (input on buy, output on sell).
+      // useWidgetAnalytics applies the withdraw sign; pass positive magnitude.
+      const leg = pendleNonPtLeg(analyticsSide, {
+        originSymbol: originToken.symbol,
+        targetSymbol: targetToken.symbol,
+        amountInBigint: debouncedAmount,
+        amountOutBigint: quote?.amountOut ?? 0n,
+        fromDecimals,
+        toDecimals
+      });
       onAnalyticsEvent?.({
         event: WidgetAnalyticsEventType.REVIEW_VIEWED,
         action: analyticsFlow,
         flow: analyticsFlow,
-        amount: Number(formatUnits(debouncedAmount, fromDecimals)),
+        amount: valueUsd(leg.symbol, leg.amount),
         data: pendleAnalyticsData({
           market,
           side: side === PendleConvertSide.BUY ? 'buy' : 'sell',
@@ -371,6 +390,12 @@ const PendleWidgetWrapped = ({ market, rightHeaderComponent, onBackToPendle }: P
     }
   }, [txStatus, needsAllowance, setShowStepIndicator]);
 
+  const maturityDate = new Date(market.expiry * 1000).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+
   // Drive the WidgetContext-backed action button (label + disabled state) so the
   // widget reuses the same primaryAlt-styled WidgetButton as Savings/Trade/etc.
   useEffect(() => {
@@ -378,7 +403,7 @@ const PendleWidgetWrapped = ({ market, rightHeaderComponent, onBackToPendle }: P
     if (!isConnectedAndEnabled) {
       label = t`Connect Wallet`;
     } else if (txStatus === TxStatus.SUCCESS) {
-      label = t`Back to ${market.name}`;
+      label = t`Back to the ${maturityDate} Market`;
     } else if (txStatus === TxStatus.ERROR) {
       label = t`Retry`;
     } else if (screen === PendleScreen.ACTION && amount === 0n) {
@@ -401,7 +426,7 @@ const PendleWidgetWrapped = ({ market, rightHeaderComponent, onBackToPendle }: P
     screen,
     flow,
     amount,
-    market.name,
+    maturityDate,
     shouldUseBatch,
     needsAllowance,
     linguiCtx,
@@ -437,23 +462,24 @@ const PendleWidgetWrapped = ({ market, rightHeaderComponent, onBackToPendle }: P
               <HStack className="space-x-2">
                 <ArrowLeft className="self-center" />
                 <Heading tag="h3" variant="small" className="text-textSecondary">
-                  <Trans>Back to Pendle</Trans>
+                  <Trans>Back to Fixed Yield</Trans>
                 </Heading>
               </HStack>
             </Button>
           )}
-          <Heading variant="x-large" className="whitespace-nowrap">
-            {market.name}
-          </Heading>
         </div>
       }
       subHeader={
-        <Text className="text-textSecondary" variant="small">
-          <Trans>
-            Lock in fixed yield by buying PT-{market.underlyingSymbol}. Each PT redeems 1:1 for{' '}
-            {market.underlyingSymbol} at maturity.
-          </Trans>
-        </Text>
+        <div>
+          <Heading variant="x-large" className="whitespace-nowrap">
+            <Trans>{maturityDate} Market</Trans>
+          </Heading>
+          <Text className="text-textSecondary" variant="small">
+            <Trans>
+              Know your return by a pre-set maturity date. Each PT redeems 1:1 for USDS at maturity.
+            </Trans>
+          </Text>
+        </div>
       }
       rightHeader={
         <HStack gap={2} className="items-center">
