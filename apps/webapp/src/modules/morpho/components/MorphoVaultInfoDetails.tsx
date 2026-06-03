@@ -65,10 +65,11 @@ export function MorphoVaultInfoDetails({
   const tvlError = isMorpho ? marketError : onChainError;
   const liquidityLoading = isMorpho ? marketDataLoading : onChainLiquidityLoading;
 
-  // Spark surfaces a single net APY — there is no fee split — so both fees are a
-  // truthful 0% rather than the Morpho API's (absent) values.
-  const managementFee = isMorpho ? (marketData?.rate?.formattedManagementFee ?? '-') : '0%';
-  const performanceFee = isMorpho ? (marketData?.rate?.formattedPerformanceFee ?? '-') : '0%';
+  // Fees apply to Morpho vaults only. Spark surfaces a single net APY with no fee
+  // split, so the fee cards are omitted entirely for Spark (rendered below only
+  // when isMorpho) rather than shown as a meaningless 0%.
+  const managementFee = marketData?.rate?.formattedManagementFee ?? '-';
+  const performanceFee = marketData?.rate?.formattedPerformanceFee ?? '-';
 
   return (
     <div className="flex w-full flex-wrap gap-3">
@@ -88,24 +89,28 @@ export function MorphoVaultInfoDetails({
           assetToken={assetToken}
         />
       </div>
-      <div className="min-w-[250px] flex-1">
-        <StatsCard
-          className="h-full"
-          title={t`Management Fee`}
-          content={<Text className="mt-2">{managementFee}</Text>}
-          isLoading={isMorpho ? marketDataLoading : false}
-          error={isMorpho ? marketError : null}
-        />
-      </div>
-      <div className="min-w-[250px] flex-1">
-        <StatsCard
-          className="h-full"
-          title={t`Performance Fee`}
-          content={<Text className="mt-2">{performanceFee}</Text>}
-          isLoading={isMorpho ? marketDataLoading : false}
-          error={isMorpho ? marketError : null}
-        />
-      </div>
+      {isMorpho && (
+        <>
+          <div className="min-w-[250px] flex-1">
+            <StatsCard
+              className="h-full"
+              title={t`Management Fee`}
+              content={<Text className="mt-2">{managementFee}</Text>}
+              isLoading={marketDataLoading}
+              error={marketError}
+            />
+          </div>
+          <div className="min-w-[250px] flex-1">
+            <StatsCard
+              className="h-full"
+              title={t`Performance Fee`}
+              content={<Text className="mt-2">{performanceFee}</Text>}
+              isLoading={marketDataLoading}
+              error={marketError}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 }
