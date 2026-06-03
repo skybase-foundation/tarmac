@@ -47,6 +47,10 @@ export const IntentMapping = {
   [Intent.FIXED_INTENT]: 'fixed'
 };
 
+// Recently launched modules, surfaced with a "new" indicator in the nav and suggested actions.
+export const NEW_INTENTS: Intent[] = [Intent.FIXED_INTENT];
+export const isNewIntent = (intent: Intent): boolean => NEW_INTENTS.includes(intent);
+
 export const ExpertIntentMapping: Record<ExpertIntent, string> = {
   [ExpertIntent.STUSDS_INTENT]: 'stusds'
 };
