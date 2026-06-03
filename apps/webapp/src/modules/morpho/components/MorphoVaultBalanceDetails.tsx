@@ -1,4 +1,4 @@
-import { useMorphoVaultOnChainData, useTokenBalance, Token } from '@/hooks';
+import { useMorphoVaultOnChainData, useTokenBalance, Token, VaultProvider } from '@/hooks';
 import { formatBigInt } from '@/utils';
 import { SuppliedBalanceCard, UnsuppliedBalanceCard } from '@/modules/ui/components/BalanceCards';
 import { t } from '@lingui/core/macro';
@@ -8,9 +8,14 @@ import { MorphoVaultRewardsDetails } from './MorphoVaultRewardsDetails';
 type MorphoVaultBalanceDetailsProps = {
   vaultAddress: `0x${string}`;
   assetToken: Token;
+  provider?: VaultProvider;
 };
 
-export function MorphoVaultBalanceDetails({ vaultAddress, assetToken }: MorphoVaultBalanceDetailsProps) {
+export function MorphoVaultBalanceDetails({
+  vaultAddress,
+  assetToken,
+  provider = 'morpho'
+}: MorphoVaultBalanceDetailsProps) {
   const chainId = useChainId();
   const { address } = useConnection();
   const {
@@ -68,7 +73,8 @@ export function MorphoVaultBalanceDetails({ vaultAddress, assetToken }: MorphoVa
       <div className="min-w-[250px] flex-1">
         <AssetBalanceCard />
       </div>
-      <MorphoVaultRewardsDetails vaultAddress={vaultAddress} />
+      {/* Rewards source is Morpho/Merkl-specific; non-Morpho vaults have no such program. */}
+      {provider === 'morpho' && <MorphoVaultRewardsDetails vaultAddress={vaultAddress} />}
     </div>
   );
 }

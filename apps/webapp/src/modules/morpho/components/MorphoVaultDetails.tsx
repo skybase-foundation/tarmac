@@ -60,7 +60,11 @@ export function MorphoVaultDetails({
       {isConnectedAndAcceptedTerms && (
         <DetailSection title={t`Your balances`} dataTestId="morpho-vault-stats-section">
           <DetailSectionRow>
-            <MorphoVaultBalanceDetails vaultAddress={vaultAddress} assetToken={assetToken} />
+            <MorphoVaultBalanceDetails
+              vaultAddress={vaultAddress}
+              assetToken={assetToken}
+              provider={provider}
+            />
           </DetailSectionRow>
         </DetailSection>
       )}
