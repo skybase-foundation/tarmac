@@ -113,8 +113,7 @@ export const WidgetPane = ({ intent, children }: WidgetPaneProps) => {
     }
   }, []);
 
-  const { rewardsUrl, savingsUrlMap, sealUrl, stakeUrl, stusdsUrl, vaultsUrl, fixedYieldUrl } =
-    useModuleUrls();
+  const { rewardsUrl, savingsUrlMap, stakeUrl, stusdsUrl, vaultsUrl, fixedYieldUrl } = useModuleUrls();
   const rewardContracts = useAvailableTokenRewardContracts(chainId);
   const rewardSubItems = rewardContracts
     .filter(contract => contract.rewardToken.symbol !== 'SKY')
@@ -167,7 +166,6 @@ export const WidgetPane = ({ intent, children }: WidgetPaneProps) => {
           hideRestrictedModules={isRegionRestricted}
           rewardsCardUrl={isRegionRestricted ? undefined : rewardsUrl}
           savingsCardUrlMap={isRegionRestricted ? undefined : savingsUrlMap}
-          sealCardUrl={sealUrl}
           stakeCardUrl={stakeUrl}
           stusdsCardUrl={isRegionRestricted ? undefined : stusdsUrl}
           vaultsCardUrl={vaultsUrl}

@@ -9,7 +9,7 @@ const gtag = function () {
   window.dataLayer.push(arguments);
 } as (...args: unknown[]) => void;
 
-export function initializeGtag() {
+function initializeGtag() {
   if (typeof window === 'undefined' || !GA_MEASUREMENT_ID) {
     return;
   }
