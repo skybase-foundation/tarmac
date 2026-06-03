@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { buildSparkSavingsUrl, fetchSparkSavingsCurrent } from './sparkSavingsApi';
+import { buildSparkSavingsUrl, fetchSparkSavingsCurrent, fetchSparkSavingsHistoric } from './sparkSavingsApi';
 import { SPARK_SAVINGS_API_HOST, SPARK_VAULT_IDENTITY } from './constants';
 
 describe('buildSparkSavingsUrl', () => {
@@ -49,6 +49,32 @@ describe('fetchSparkSavingsCurrent', () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('nope', { status: 503 }));
 
     await expect(fetchSparkSavingsCurrent(SPARK_VAULT_IDENTITY)).rejects.toThrow(
+      'Spark Savings API error: 503'
+    );
+  });
+});
+
+describe('fetchSparkSavingsHistoric', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('requests the /historic URL built from the configured host and returns the parsed payload', async () => {
+    const payload = { data: [{ date: '2026-06-01T00:00:00.000Z', apy: '0', tvl: '1' }] };
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response(JSON.stringify(payload), { status: 200 }));
+
+    const result = await fetchSparkSavingsHistoric(SPARK_VAULT_IDENTITY, 'https://proxy.test');
+
+    expect(fetchSpy).toHaveBeenCalledWith('https://proxy.test/v1/savings/sky/mainnet/usdt/historic');
+    expect(result).toEqual(payload);
+  });
+
+  it('throws on a non-OK response so the caller can surface a clean error state', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('nope', { status: 503 }));
+
+    await expect(fetchSparkSavingsHistoric(SPARK_VAULT_IDENTITY)).rejects.toThrow(
       'Spark Savings API error: 503'
     );
   });

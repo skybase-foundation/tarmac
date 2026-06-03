@@ -3,12 +3,30 @@ import { mainnet } from 'viem/chains';
 import { TRUST_LEVELS, TrustLevelEnum } from '../../constants';
 import type { NormalizedVaultMarketData, VaultMarketDataHook } from '../useVaultMarketData';
 import { SPARK_VAULT_IDENTITY } from './constants';
-import { buildSparkSavingsUrl, fetchSparkSavingsCurrent } from './sparkSavingsApi';
-import { normalizeSparkCurrentData } from './normalizeSparkVaultData';
+import { buildSparkSavingsUrl, fetchSparkSavingsCurrent, fetchSparkSavingsHistoric } from './sparkSavingsApi';
+import { normalizeSparkCurrentData, normalizeSparkHistoricData } from './normalizeSparkVaultData';
+
+/** Asset decimals fallback when the current payload omits the `asset` descriptor. */
+const DEFAULT_ASSET_DECIMALS = 18;
 
 async function fetchSparkVaultData(vaultAddress: string): Promise<NormalizedVaultMarketData | undefined> {
-  const response = await fetchSparkSavingsCurrent(SPARK_VAULT_IDENTITY);
-  return normalizeSparkCurrentData(response, vaultAddress);
+  // Current + historic in parallel. The historic series feeds the metrics chart;
+  // a historic outage must not blank the core figures, so swallow its error and
+  // fall back to an empty (clean) series while current still propagates.
+  const [currentResponse, historicResponse] = await Promise.all([
+    fetchSparkSavingsCurrent(SPARK_VAULT_IDENTITY),
+    fetchSparkSavingsHistoric(SPARK_VAULT_IDENTITY).catch(() => undefined)
+  ]);
+
+  const normalized = normalizeSparkCurrentData(currentResponse, vaultAddress);
+  // Historic points carry no asset descriptor; source decimals from current.
+  const decimals = currentResponse?.data?.asset?.decimals ?? DEFAULT_ASSET_DECIMALS;
+  const history = normalizeSparkHistoricData(historicResponse, decimals);
+
+  if (!normalized) {
+    return history.length > 0 ? { history } : undefined;
+  }
+  return { ...normalized, history };
 }
 
 /**

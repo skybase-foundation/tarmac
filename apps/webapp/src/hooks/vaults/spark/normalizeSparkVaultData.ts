@@ -1,9 +1,14 @@
 import { parseUnits } from 'viem';
 import type { MorphoVaultRateData } from '../../morpho/useMorphoVaultRateApiData';
-import type { NormalizedVaultAllocation, NormalizedVaultMarketData } from '../useVaultMarketData';
+import type {
+  NormalizedVaultAllocation,
+  NormalizedVaultHistoryPoint,
+  NormalizedVaultMarketData
+} from '../useVaultMarketData';
 import type {
   SparkSavingsCollateralComposition,
   SparkSavingsCurrentResponse,
+  SparkSavingsHistoricResponse,
   SparkSavingsLiquidityEntry
 } from './sparkSavingsApi';
 
@@ -165,4 +170,42 @@ export function normalizeSparkCurrentData(
     allocations,
     depositCap
   };
+}
+
+/**
+ * Map the raw historic Spark Savings payload (daily `{date, apy, tvl}` points)
+ * into the provider-neutral history-point series the metrics chart consumes.
+ *
+ * `date` (ISO UTC-midnight) → `blockTimestamp` (unix seconds); `tvl` (decimal
+ * string, whole-token units) → `amount` via the asset decimals; `apy` (decimal
+ * string) → a decimal rate. The API exposes no USD figure, so `amountUsd` is 0.
+ * Points are returned ascending by timestamp.
+ *
+ * Defensive: unwraps the `data` array, drops entries with an unparseable date or
+ * TVL, and yields an empty (not errored) series for an empty/missing payload.
+ */
+export function normalizeSparkHistoricData(
+  response: SparkSavingsHistoricResponse | null | undefined,
+  decimals: number = DEFAULT_ASSET_DECIMALS
+): NormalizedVaultHistoryPoint[] {
+  const entries = response?.data;
+  if (!Array.isArray(entries) || entries.length === 0) return [];
+
+  const points: NormalizedVaultHistoryPoint[] = [];
+  for (const entry of entries) {
+    if (!entry || typeof entry.date !== 'string') continue;
+    const ms = Date.parse(entry.date);
+    if (Number.isNaN(ms)) continue;
+    const amount = parseTokenAmount(entry.tvl, decimals);
+    if (amount === undefined) continue;
+    points.push({
+      blockTimestamp: Math.floor(ms / 1000),
+      amount,
+      amountUsd: 0,
+      apy: parseApy(entry.apy)
+    });
+  }
+
+  points.sort((a, b) => a.blockTimestamp - b.blockTimestamp);
+  return points;
 }

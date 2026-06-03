@@ -48,6 +48,22 @@ export type SparkSavingsCurrentResponse = {
   data?: SparkSavingsCurrentData;
 };
 
+/**
+ * One daily point of the historic Savings endpoint (`…/historic`). Daily only —
+ * no intraday, no USD field. `apy`/`tvl` are decimal STRINGS like the current
+ * endpoint; `date` is an ISO UTC-midnight string.
+ */
+export type SparkSavingsHistoricEntry = {
+  date: string;
+  apy?: string;
+  tvl?: string;
+};
+
+/** Top-level historic response — a `data` array of daily points (may be empty). */
+export type SparkSavingsHistoricResponse = {
+  data?: SparkSavingsHistoricEntry[];
+};
+
 /** Path identity for a Savings vault: `/{protocol}/{chain}/{token}`. */
 export type SparkVaultIdentity = {
   protocol: string;
@@ -89,4 +105,23 @@ export async function fetchSparkSavingsCurrent(
   }
 
   return (await response.json()) as SparkSavingsCurrentResponse;
+}
+
+/**
+ * Fetch the historic (daily TVL/APY series) Savings payload for a vault. Reuses
+ * the same configurable host as the current endpoint. Public, read-only, no auth.
+ * Throws on a non-OK response so the caller can surface a clean error state.
+ */
+export async function fetchSparkSavingsHistoric(
+  identity: SparkVaultIdentity,
+  host?: string
+): Promise<SparkSavingsHistoricResponse> {
+  const url = buildSparkSavingsUrl(identity, { host, historic: true });
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Spark Savings API error: ${response.status}`);
+  }
+
+  return (await response.json()) as SparkSavingsHistoricResponse;
 }

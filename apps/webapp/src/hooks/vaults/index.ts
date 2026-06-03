@@ -7,17 +7,20 @@ export {
   SPARK_VAULT_IDENTITY
 } from './spark/constants';
 export { useSparkVaultApiData } from './spark/useSparkVaultApiData';
-export { normalizeSparkCurrentData } from './spark/normalizeSparkVaultData';
+export { normalizeSparkCurrentData, normalizeSparkHistoricData } from './spark/normalizeSparkVaultData';
 export {
   buildSparkSavingsUrl,
   fetchSparkSavingsCurrent,
+  fetchSparkSavingsHistoric,
   type SparkVaultIdentity,
   type SparkSavingsCurrentResponse,
   type SparkSavingsCurrentData,
   type SparkSavingsTokenInfo,
   type SparkSavingsLiquidityEntry,
   type SparkSavingsCollateralEntry,
-  type SparkSavingsCollateralComposition
+  type SparkSavingsCollateralComposition,
+  type SparkSavingsHistoricResponse,
+  type SparkSavingsHistoricEntry
 } from './spark/sparkSavingsApi';
 export { useErc4626VaultData, type Erc4626VaultData, type Erc4626VaultDataHook } from './useErc4626VaultData';
 export { useSparkVaultRate } from './spark/useSparkVaultRate';
