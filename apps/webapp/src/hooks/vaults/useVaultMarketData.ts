@@ -57,8 +57,10 @@ export type NormalizedVaultMarketData = {
   totalAssets?: bigint;
   /** Total assets held by the vault in USD */
   totalAssetsUsd?: number;
-  /** Vault-level available liquidity (Morpho only; Spark uses on-chain `maxWithdraw`) */
+  /** Vault-level available liquidity (Morpho market API; Spark sums the API's `liquidity[]`) */
   liquidity?: bigint;
+  /** Provider-optional deposit cap, in the smallest asset unit (Spark surfaces it via the API) */
+  depositCap?: bigint;
   /** Provider-optional allocations breakdown (lit up for Spark in slice 05) */
   allocations?: NormalizedVaultAllocation[];
   /**

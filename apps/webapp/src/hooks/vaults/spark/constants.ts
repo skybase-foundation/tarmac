@@ -12,16 +12,20 @@ import { VaultConfig } from '../types';
 export const SPARK_USDT_VAULT_ADDRESS = '0x74cb54e082411cfCAEADb00a0765625B10410DAa' as const;
 
 /**
- * Spark vault-data endpoint. Same pattern as `MORPHO_API_URL`: a hardcoded code
- * constant, NOT an env var or proxy — no operator config to ship this slice.
- *
- * This is a documented PLACEHOLDER. Spark has not yet delivered the live endpoint
- * (tracked in the APP-266 Spark/Ozone Slack group). When they do, pointing the
- * vault at real data is a one-line change to this constant; the data layer is
- * already built against the `SparkVaultApiPayload` → normalized mapping. Until
- * then the fetch fails fast and the dispatcher returns a clean empty state.
+ * Host for the live Spark Savings Data API (public, read-only, no auth). This is
+ * the single swappable config point: moving these calls from `api.spark.fi` to
+ * our own proxy (e.g. `api.sky.money` / Sky BA endpoints, per ADR-0001's deferred
+ * host decision) is a one-value edit here — the client owns path construction and
+ * everything downstream depends on the normalized shape, not the URL.
  */
-export const SPARK_VAULT_API_URL = 'https://api.sky.money/spark/vaults/susdt';
+export const SPARK_SAVINGS_API_HOST = 'https://api.spark.fi';
+
+/**
+ * Path identity for our vault: `sky / mainnet / usdt` (→ `sUSDT`, "Tether
+ * Savings"). NOT `spark/.../usdt` — that is Spark's own `spUSDT` product. The
+ * client builds `/v1/savings/{protocol}/{chain}/{token}` from this.
+ */
+export const SPARK_VAULT_IDENTITY = { protocol: 'sky', chain: 'mainnet', token: 'usdt' } as const;
 
 /**
  * Spark vaults registered in the app. Today only Tether Savings (sUSDT).
