@@ -10,6 +10,7 @@ export {
 } from './spark/useSparkVaultApiData';
 export { useErc4626VaultData, type Erc4626VaultData, type Erc4626VaultDataHook } from './useErc4626VaultData';
 export { useSparkVaultRate } from './spark/useSparkVaultRate';
+export { useVaultRatesByAddress, type VaultRatesByAddressHook } from './useVaultRatesByAddress';
 export { computeVaultLimits, type VaultLimits, type VaultLimitsInput } from './computeVaultLimits';
 export {
   useVaultMarketData,
