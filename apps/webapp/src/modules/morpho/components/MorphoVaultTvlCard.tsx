@@ -2,21 +2,27 @@ import { StatsCard } from '@/modules/ui/components/StatsCard';
 import { msg } from '@lingui/core/macro';
 import { useLingui } from '@lingui/react';
 import { formatBigInt } from '@/utils';
-import { useMorphoVaultMarketApiData, Token } from '@/hooks';
+import { Token } from '@/hooks';
 import { TokenIconWithBalance } from '@/modules/ui/components/TokenIconWithBalance';
 import { useChainId } from 'wagmi';
 
 type MorphoVaultTvlCardProps = {
-  vaultAddress: `0x${string}`;
+  /** Total assets held by the vault (TVL), in the asset's smallest unit. */
+  totalAssets?: bigint;
+  isLoading: boolean;
+  error?: Error | null;
   assetToken: Token;
 };
 
-export function MorphoVaultTvlCard({ vaultAddress, assetToken }: MorphoVaultTvlCardProps) {
+/**
+ * Presentational Total Value Locked sub-card. Provider-neutral: the parent
+ * supplies `totalAssets` from the appropriate source (Morpho market API or
+ * on-chain ERC-4626 `totalAssets`).
+ */
+export function MorphoVaultTvlCard({ totalAssets, isLoading, error, assetToken }: MorphoVaultTvlCardProps) {
   const { i18n } = useLingui();
   const chainId = useChainId();
-  const { data: marketData, isLoading } = useMorphoVaultMarketApiData({ vaultAddress });
 
-  const totalAssets = marketData?.totalAssets;
   const assetDecimals =
     typeof assetToken.decimals === 'number'
       ? assetToken.decimals
@@ -26,10 +32,12 @@ export function MorphoVaultTvlCard({ vaultAddress, assetToken }: MorphoVaultTvlC
     <StatsCard
       className="h-full"
       isLoading={isLoading}
+      error={error}
       title={i18n._(msg`Total Value Locked`)}
       content={
         <TokenIconWithBalance
           className="mt-2"
+          dataTestId="vault-info-tvl"
           token={{ symbol: assetToken.symbol, name: assetToken.name }}
           balance={totalAssets !== undefined ? formatBigInt(totalAssets, { unit: assetDecimals }) : '--'}
         />

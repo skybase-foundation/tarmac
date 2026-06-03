@@ -66,7 +66,7 @@ export function MorphoVaultDetails({
       )}
       <DetailSection title={t`${vaultName} info`}>
         <DetailSectionRow>
-          <MorphoVaultInfoDetails vaultAddress={vaultAddress} assetToken={assetToken} />
+          <MorphoVaultInfoDetails vaultAddress={vaultAddress} assetToken={assetToken} provider={provider} />
         </DetailSectionRow>
       </DetailSection>
       {showExposure && (

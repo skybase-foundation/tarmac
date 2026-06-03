@@ -49,6 +49,7 @@ export function MorphoMarketLiquidityCard({
       content={
         <TokenIconWithBalance
           className="mt-2"
+          dataTestId="vault-info-liquidity"
           token={{ symbol: assetToken.symbol, name: assetToken.name }}
           balance={formatBigInt(liquidity || 0n, { unit: assetDecimals })}
         />
