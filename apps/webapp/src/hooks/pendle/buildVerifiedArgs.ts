@@ -15,8 +15,8 @@ import type { PendleAggregatorRoute, PendleConvertQuote } from './pendle';
 /**
  * The on-chain swapData struct shape. When no aggregator is used this is
  * byte-equivalent to PENDLE_EMPTY_SWAP_DATA; when an aggregator hop is taken
- * (input/output token differs from the underlying), the fields come from the
- * API after passing the pinned-pendleSwap check.
+ * (the user-side token is not one the SY accepts directly), the fields come
+ * from the API after passing the pinned-pendleSwap check.
  */
 type VerifiedSwapData = {
   swapType: number;
@@ -117,12 +117,17 @@ export type KnownCallValues = {
   /** For BUY: PT token. For WITHDRAW: user-selected output token. */
   outputToken: `0x${string}`;
   /**
-   * The market's underlying token (the SY's accepted token). Equals
-   * inputToken on BUY / outputToken on WITHDRAW when the user picked the
-   * underlying directly; differs when the user picked USDS / USDC and the
-   * route therefore goes through an aggregator hop.
+   * Pendle's underlyingAsset — the SY's wrapped yield-bearing token. Used as
+   * tokenMintSy / tokenRedeemSy on the aggregator path.
    */
   underlyingToken: `0x${string}`;
+  /**
+   * Tokens SY accepts directly via getTokensIn() / getTokensOut(). When the
+   * user-side token is in this list, the no-aggregator path is taken
+   * (pendleSwap=0x0, tokenMintSy=userSideToken). Optional; defaults to
+   * `[underlyingToken]` to match single-input SYs.
+   */
+  syAcceptedTokens?: `0x${string}`[];
   amountIn: bigint;
   /**
    * The pinned PendleSwap forwarder address for the active chain. The caller
@@ -131,6 +136,8 @@ export type KnownCallValues = {
    * other address is rejected.
    */
   pinnedPendleSwap: `0x${string}`;
+  /** Decimal (0.002 = 0.2%). Used to floor apiMinOut — see verifyApiMinOut. */
+  slippage: number;
 };
 
 // ---------------------------------------------------------------------------
@@ -144,23 +151,24 @@ const verifiedEmptyLimit: VerifiedLimit = PENDLE_EMPTY_LIMIT;
  * Resolve the (pendleSwap, swapData, tokenMintSyOrRedeem) triplet for a Buy
  * or Withdraw call. There are exactly two valid cases:
  *
- *   1. **No aggregator** — the user-picked side equals the underlying. The
- *      SY accepts the input/output directly; pendleSwap is forced to 0x0
- *      and swapData to its empty form. tokenMintSy / tokenRedeemSy = the
- *      user-picked token (which equals the underlying).
+ *   1. **No aggregator** — the user-picked side is one of the tokens SY accepts
+ *      directly (`syAcceptedTokens`). pendleSwap is forced to 0x0 and swapData
+ *      to its empty form. tokenMintSy / tokenRedeemSy = the user-picked token
+ *      (the SY handles it natively).
  *
- *   2. **Aggregator** — the user picked USDS / USDC (or any non-underlying).
- *      The route must therefore pass through Pendle's PendleSwap forwarder,
- *      which proxies to the external aggregator. We assert the API's
- *      `pendleSwap` equals our pinned address; otherwise we refuse to sign.
- *      tokenMintSy / tokenRedeemSy must be the underlying — that's what the
- *      SY actually accepts after the aggregator hop produces it.
+ *   2. **Aggregator** — the user picked a token outside `syAcceptedTokens`
+ *      (e.g. USDC for a USDS/sUSDS-only SY). The route must pass through
+ *      Pendle's PendleSwap forwarder, which proxies to the external aggregator.
+ *      We assert the API's `pendleSwap` equals our pinned address; otherwise
+ *      we refuse to sign. tokenMintSy / tokenRedeemSy is the underlying —
+ *      that's what the SY ends up holding after the aggregator hop.
  *
  * @param userSideToken inputToken on BUY, outputToken on WITHDRAW
  */
 function resolveAggregatorFields(
   userSideToken: `0x${string}`,
   underlyingToken: `0x${string}`,
+  syAcceptedTokens: `0x${string}`[],
   pinnedPendleSwap: `0x${string}`,
   aggregatorRoute: PendleAggregatorRoute | undefined,
   side: PendleConvertSide
@@ -169,52 +177,74 @@ function resolveAggregatorFields(
   swapData: VerifiedSwapData;
   tokenMintSyOrRedeem: `0x${string}`;
 } {
-  const usesAggregator = !isAddressEqual(userSideToken, underlyingToken);
+  const usesAggregator = !syAcceptedTokens.some(t => isAddressEqual(userSideToken, t));
 
-  // tokenMintSy / tokenRedeemSy is always the underlying — that's what the SY
-  // contract accepts. In the no-aggregator branch userSideToken === underlying
-  // by precondition, so the two are equivalent on the wire, but pinning to
-  // underlyingToken makes the invariant explicit and self-documenting.
+  // No aggregator: SY accepts userSideToken directly per getTokensIn/getTokensOut,
+  // so tokenMintSy/tokenRedeemSy is the user-picked token itself.
   if (!usesAggregator) {
     return {
       pendleSwap: ZERO_ADDRESS,
       swapData: verifiedEmptySwapData,
-      tokenMintSyOrRedeem: underlyingToken
+      tokenMintSyOrRedeem: userSideToken
     };
   }
 
   // Aggregator path — require the API to have returned a route.
   if (!aggregatorRoute) {
     throw new Error(
-      `Pendle: refusing to sign — aggregator required (${side} with non-underlying token) but the quote has no aggregatorRoute`
+      `Pendle: refusing to sign — aggregator required (${side} with non-SY-accepted token) but the quote has no aggregatorRoute`
     );
   }
-  // The single trust anchor: pendleSwap MUST be the pinned PendleSwap
-  // forwarder. Anything else means the API is steering us at an unaudited
-  // contract — refuse to sign.
+  // Trust anchor #1: pendleSwap MUST be the pinned PendleSwap forwarder.
+  // Anything else means the API is steering us at an unaudited contract.
   if (!isAddressEqual(aggregatorRoute.pendleSwap, pinnedPendleSwap)) {
     throw new Error(
       `Pendle: refusing to sign — pendleSwap "${aggregatorRoute.pendleSwap}" is not the pinned forwarder "${pinnedPendleSwap}"`
     );
   }
+  // Trust anchor #2: the aggregator's delivery token MUST be in our local
+  // allowlist of SY-accepted tokens. For multi-input SYs (PT-sUSDS) the API
+  // picks the cheapest route, so this isn't necessarily `underlyingToken` —
+  // but it must be one of the tokens the SY natively accepts.
+  if (!syAcceptedTokens.some(t => isAddressEqual(aggregatorRoute.tokenMintSyOrRedeem, t))) {
+    throw new Error(
+      `Pendle: refusing to sign — aggregator delivers to "${aggregatorRoute.tokenMintSyOrRedeem}" which is not in syAcceptedTokens`
+    );
+  }
   return {
     pendleSwap: aggregatorRoute.pendleSwap,
     swapData: aggregatorRoute.swapData,
-    // After the aggregator hop, what reaches the SY is the underlying. The
-    // tokenMintSy / tokenRedeemSy field describes what the SY interacts with,
-    // not what the user supplied.
-    tokenMintSyOrRedeem: underlyingToken
+    tokenMintSyOrRedeem: aggregatorRoute.tokenMintSyOrRedeem
   };
 }
 
 /**
- * Extract the `guessPtOut` solver hint from the API's parsed contract params.
- *
- * Position 3 in `swapExactTokenForPt`'s arg list per Pendle's docs. We pass
- * this through verbatim — bad values cause an on-chain revert (no fund loss)
- * since `minPtOut` is recomputed locally and provides the actual protection.
- *
- * Numeric fields come back as decimal wei strings (JSON has no native bigint).
+ * Floor apiMinOut against `amountOut * (1 - slippage)` so a tampered /convert
+ * response can't sneak a too-low minOut into the signed call. Slippage is
+ * re-validated here too — localStorage can be widened past the UI cap.
+ * 1 bp tolerance absorbs honest API/local rounding drift.
+ */
+function verifyApiMinOut(quote: PendleConvertQuote, slippage: number): void {
+  if (!Number.isFinite(slippage) || slippage < 0 || slippage >= 1) {
+    throw new Error(
+      `Pendle: refusing to sign — slippage ${slippage} is outside the allowed [0, 1) range`
+    );
+  }
+  const slippageBp = BigInt(Math.round(slippage * 10_000));
+  const TOLERANCE_BP = 1n;
+  const floorBp = 10_000n - slippageBp - TOLERANCE_BP;
+  if (floorBp <= 0n) return;
+  const expectedMinOut = (quote.amountOut * floorBp) / 10_000n;
+  if (quote.apiMinOut < expectedMinOut) {
+    throw new Error(
+      `Pendle: refusing to sign — apiMinOut ${quote.apiMinOut} is below the local slippage floor ${expectedMinOut} (amountOut=${quote.amountOut}, slippage=${slippage})`
+    );
+  }
+}
+
+/**
+ * Solver hint at position 3. Passed through verbatim — fund safety comes
+ * from the verifyApiMinOut floor on minPtOut, not from these hints.
  */
 function extractGuessPtOut(params: unknown[]): VerifiedBuyArgs[3] {
   const raw = params[3] as
@@ -258,12 +288,14 @@ function extractGuessPtOut(params: unknown[]): VerifiedBuyArgs[3] {
  *   2. Override every user-controllable field with values WE know
  *      (receiver, market, amounts, minOut)
  *   3. Resolve (pendleSwap, swapData, tokenMintSy/tokenRedeemSy) based on
- *      whether the user-picked token equals the underlying:
- *        - Equal → no-aggregator: empty pendleSwap/swapData, SY field = user
+ *      whether the user-picked token is one SY accepts directly
+ *      (`syAcceptedTokens`):
+ *        - Accepted → no-aggregator: empty pendleSwap/swapData, SY field = user
  *          token (byte-equivalent to `createTokenInputStruct + emptyLimit`).
- *        - Differs → aggregator: pendleSwap from the API after a strict
- *          equality check against PENDLE_PINNED_PENDLESWAP_ADDRESSES;
- *          swapData forwarded; SY field = underlying.
+ *        - Not accepted → aggregator: pendleSwap from the API after a strict
+ *          equality check against PENDLE_PINNED_PENDLESWAP_ADDRESSES; swapData
+ *          forwarded; SY field = the API's delivery token, checked against
+ *          syAcceptedTokens.
  *   4. `limit` is always forced to its empty form — limit-orders are out of
  *      scope.
  *
@@ -272,9 +304,11 @@ function extractGuessPtOut(params: unknown[]): VerifiedBuyArgs[3] {
  *
  * Trust anchors of the aggregator branch:
  *   (a) pendleSwap is pinned (only Pendle's audited forwarder),
- *   (b) tokenMintSy/tokenRedeemSy is pinned to the underlying,
- *   (c) apiMinOut bounds the worst-case output denominated in the user-picked
- *       token, so a malicious aggregator hop can at worst revert the tx.
+ *   (b) tokenMintSy/tokenRedeemSy must be in syAcceptedTokens (the SY's
+ *       allowlist of directly-accepted tokens),
+ *   (c) apiMinOut is floored against `amountOut * (1 - slippage)` so a
+ *       compromised or buggy quote cannot sneak a too-low minOut into the
+ *       signed calldata — see verifyApiMinOut.
  */
 export function buildVerifiedArgs(quote: PendleConvertQuote, known: KnownCallValues): VerifiedCall {
   // 1. Per-flow allowlist
@@ -285,7 +319,10 @@ export function buildVerifiedArgs(quote: PendleConvertQuote, known: KnownCallVal
     throw new Error(`Pendle: refusing to sign — selector "${quote.method}" not allowed for ${known.side}`);
   }
 
-  // 2 + 3. Rebuild args from known values + force-empty.
+  // 2. apiMinOut floor — uniform across buy / withdraw / exit.
+  verifyApiMinOut(quote, known.slippage);
+
+  // 3 + 4. Rebuild args from known values + force-empty.
   // Dispatch on the API's method (already gated by the allowlist above).
   if (quote.method === 'swapExactTokenForPt') {
     return buildBuyArgs(quote, known);
@@ -309,6 +346,7 @@ function buildBuyArgs(quote: PendleConvertQuote, known: KnownCallValues): Verifi
   const { pendleSwap, swapData, tokenMintSyOrRedeem } = resolveAggregatorFields(
     known.inputToken, // BUY's user-picked side is the input
     known.underlyingToken,
+    known.syAcceptedTokens ?? [known.underlyingToken],
     known.pinnedPendleSwap,
     quote.aggregatorRoute,
     PendleConvertSide.BUY
@@ -340,6 +378,7 @@ function buildWithdrawArgs(quote: PendleConvertQuote, known: KnownCallValues): V
   const { pendleSwap, swapData, tokenMintSyOrRedeem } = resolveAggregatorFields(
     known.outputToken, // WITHDRAW's user-picked side is the output
     known.underlyingToken,
+    known.syAcceptedTokens ?? [known.underlyingToken],
     known.pinnedPendleSwap,
     quote.aggregatorRoute,
     PendleConvertSide.WITHDRAW
@@ -370,6 +409,7 @@ function buildExitArgs(quote: PendleConvertQuote, known: KnownCallValues): Verif
   const { pendleSwap, swapData, tokenMintSyOrRedeem } = resolveAggregatorFields(
     known.outputToken, // EXIT's user-picked side is the output, same as WITHDRAW
     known.underlyingToken,
+    known.syAcceptedTokens ?? [known.underlyingToken],
     known.pinnedPendleSwap,
     quote.aggregatorRoute,
     PendleConvertSide.WITHDRAW

@@ -51,41 +51,76 @@ export const PendleRedeem = ({
   // Pendle returns the breakdown on no-aggregator routes too; only show it when an aggregator is used.
   const breakdown = aggregatorName ? quote?.priceImpactBreakdown : undefined;
 
-  const isPositiveImpact = (quote?.priceImpact ?? 0) > 0;
-  const positiveImpactClass = isPositiveImpact ? 'text-bullish' : undefined;
+  // Pendle's API uses positive = favorable; we display with the inverse
+  // convention so positive = unfavorable (matching TradeWidget/StUSDSWidget
+  // and broader DeFi conventions). The raw quote.priceImpact stays unflipped
+  // for analytics/debugging.
 
-  const transactionData = quote
+  // Section 1 "Transaction overview" (expanded by default): the two numbers
+  // the user came for — how much PT they're redeeming, and how much USDS/USDC
+  // they're getting. Per APP-268.
+  const pinnedData = quote
     ? [
         {
-          label: t`Min. received`,
-          value: `${formatBigInt(quote.apiMinOut, { unit: outDecimals, maxDecimals: 4 })} ${selectedOutputToken.symbol}`
+          label: t`You redeem`,
+          value: `${formattedPt} ${ptSymbol}`
         },
         {
-          label: t`Slippage tolerance`,
-          value: `${formatNumber(slippage * 100, { maxDecimals: 2 })}%`
-        },
-        {
-          label: t`Price impact`,
-          value: `${isPositiveImpact ? '+' : ''}${formatNumber(quote.priceImpact * 100, { maxDecimals: 3 })}%`,
-          className: positiveImpactClass
-        },
-        ...(breakdown
+          label: t`You receive`,
+          value: `${formatBigInt(quote.amountOut, { unit: outDecimals, maxDecimals: 4 })} ${selectedOutputToken.symbol}`
+        }
+      ]
+    : undefined;
+
+  // Section 2 "Transaction details" (collapsed by default).
+  const transactionData = quote
+    ? [
+        // Slippage / price impact / Min. received only matter on aggregator
+        // hops; pure PT-burn at the SY's expiry-frozen rate has no swap math.
+        ...(aggregatorName
           ? [
               {
-                label: t`  · Pendle AMM`,
-                value: `${formatNumber(breakdown.internalPriceImpact * 100, { maxDecimals: 3 })}%`,
-                className: positiveImpactClass
+                label: t`Min. received`,
+                value: `${formatBigInt(quote.apiMinOut, { unit: outDecimals, maxDecimals: 4 })} ${selectedOutputToken.symbol}`
               },
               {
-                label: t`  · Aggregator hop`,
-                value: `${formatNumber(breakdown.externalPriceImpact * 100, { maxDecimals: 3 })}%`,
-                className: positiveImpactClass
+                label: t`Slippage tolerance`,
+                value: `${formatNumber(slippage * 100, { maxDecimals: 2 })}%`
+              },
+              {
+                label: t`Price impact`,
+                value: `${formatNumber(-quote.priceImpact * 100, { maxDecimals: 3 })}%`
               }
             ]
           : []),
-        ...(aggregatorName ? [{ label: t`Routed via`, value: aggregatorName }] : []),
+        ...(breakdown
+          ? [
+              {
+                label: t`Pendle redeem`,
+                value: `${formatNumber(-breakdown.internalPriceImpact * 100, { maxDecimals: 3 })}%`,
+                labelClassName: 'pl-4 opacity-70',
+                className: 'opacity-70',
+                containerClassName: '-mt-2'
+              },
+              {
+                // breakdown is only populated when aggregatorName is truthy
+                label: aggregatorName!,
+                value: `${formatNumber(-breakdown.externalPriceImpact * 100, { maxDecimals: 3 })}%`,
+                labelClassName: 'pl-4 opacity-70',
+                className: 'opacity-70',
+                containerClassName: '-mt-2'
+              }
+            ]
+          : []),
         {
-          label: t`Routing fee`,
+          label: t`Routed via`,
+          // Post-maturity, PT is burned via SY at the expiry-frozen rate — no
+          // AMM pool. When an aggregator is in the route, it then swaps the
+          // underlying into the user's chosen output token.
+          value: aggregatorName ? `Pendle redeem → ${aggregatorName}` : 'Pendle redeem'
+        },
+        {
+          label: t`Pendle fee`,
           value:
             quote.feeUsd !== undefined
               ? `$${formatNumber(quote.feeUsd, { maxDecimals: quote.feeUsd >= 1 ? 2 : 4 })}`
@@ -161,6 +196,7 @@ export const PendleRedeem = ({
         title={t`Transaction overview`}
         isFetching={isFetchingQuote && !quote}
         fetchingMessage={t`Fetching quote from Pendle`}
+        pinnedData={pinnedData}
         transactionData={transactionData}
       />
     </div>

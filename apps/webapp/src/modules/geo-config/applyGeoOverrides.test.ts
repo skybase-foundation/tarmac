@@ -12,7 +12,10 @@ const mockConfig: GeoConfig = {
     rewards: { enabled: true },
     expert: { enabled: true },
     trade: { enabled: true },
-    upgrade: { enabled: true }
+    upgrade: { enabled: true },
+    stake: { enabled: true },
+    vaults: { enabled: true },
+    fixed: { enabled: true }
   },
   isCookiesBannerRequired: false
 };
@@ -48,7 +51,10 @@ describe('applyGeoOverrides', () => {
           rewards: { enabled: false, restrictionReason: 'Restricted' },
           expert: { enabled: false, restrictionReason: 'Restricted' },
           trade: { enabled: true },
-          upgrade: { enabled: true }
+          upgrade: { enabled: true },
+          stake: { enabled: true },
+          vaults: { enabled: true },
+          fixed: { enabled: true }
         }
       };
 
@@ -59,6 +65,9 @@ describe('applyGeoOverrides', () => {
       expect(result.modules.expert.enabled).toBe(true);
       expect(result.modules.trade.enabled).toBe(true);
       expect(result.modules.upgrade.enabled).toBe(true);
+      expect(result.modules.stake.enabled).toBe(true);
+      expect(result.modules.vaults.enabled).toBe(true);
+      expect(result.modules.fixed.enabled).toBe(true);
     });
   });
 
@@ -71,6 +80,9 @@ describe('applyGeoOverrides', () => {
       expect(result.modules.expert.enabled).toBe(false);
       expect(result.modules.trade.enabled).toBe(true);
       expect(result.modules.upgrade.enabled).toBe(true);
+      expect(result.modules.stake.enabled).toBe(true);
+      expect(result.modules.vaults.enabled).toBe(true);
+      expect(result.modules.fixed.enabled).toBe(true);
     });
   });
 

@@ -25,8 +25,10 @@ import { PendleStatsCard } from './PendleStatsCard';
 type SupplyWithdrawProps = {
   market: PendleMarketConfig;
   ptToken: Token;
-  /** USDS / USDC / underlying — selectable on BUY input and SELL output. */
-  inputTokenList: Token[];
+  /** Tokens selectable on BUY input — underlying + USDS + USDC (de-duped). */
+  supplyTokenList: Token[];
+  /** Tokens selectable on SELL output — supply list minus sUSDS. */
+  withdrawTokenList: Token[];
   /** Currently-selected BUY input token. */
   selectedSupplyToken: Token;
   onSupplyTokenChange: (token: Token) => void;
@@ -57,7 +59,8 @@ type SupplyWithdrawProps = {
 export const SupplyWithdraw = ({
   market,
   ptToken,
-  inputTokenList,
+  supplyTokenList,
+  withdrawTokenList,
   selectedSupplyToken,
   onSupplyTokenChange,
   selectedWithdrawOutToken,
@@ -105,6 +108,13 @@ export const SupplyWithdraw = ({
     month: 'short',
     day: 'numeric'
   });
+  // BUY only: 1 PT redeems for 1 USDS at maturity (assetInfo: TOKEN, USDS for
+  // PT-sUSDS) — so amountOut in PT units IS the USDS payout at maturity.
+  // Future markets with usdsEquivalence !== 'pegged' would need PT × chi here.
+  const valueAtMaturity =
+    quote && flow === PendleFlow.BUY
+      ? `${formatBigInt(quote.amountOut, { unit: targetDecimals, maxDecimals: 4 })} USDS`
+      : undefined;
 
   const errorText = insufficientFunds
     ? t`Insufficient funds. Your balance is ${formatUnits(inputBalance ?? 0n, originDecimals)}.`
@@ -114,12 +124,13 @@ export const SupplyWithdraw = ({
   // BUY → PT. SELL → user-selected output token.
   const targetToken = flow === PendleFlow.BUY ? ptToken : selectedWithdrawOutToken;
 
-  const isPositiveImpact = (quote?.priceImpact ?? 0) > 0;
-  const positiveImpactClass = isPositiveImpact ? 'text-bullish' : undefined;
+  // Pendle's API uses positive = favorable; we display with the inverse
+  // convention so positive = unfavorable (matching TradeWidget/StUSDSWidget
+  // and broader DeFi conventions). The raw quote.priceImpact stays unflipped
+  // for analytics/debugging.
+  const displayPriceImpact = quote?.priceImpact !== undefined ? -quote.priceImpact : undefined;
   const priceImpactRow =
-    quote?.priceImpact !== undefined
-      ? `${isPositiveImpact ? '+' : ''}${(quote.priceImpact * 100).toFixed(3)}%`
-      : '—';
+    displayPriceImpact !== undefined ? `${(displayPriceImpact * 100).toFixed(3)}%` : '—';
 
   const aggregatorName = quote?.aggregatorType ? formatPendleAggregatorName(quote.aggregatorType) : undefined;
   // Pendle's API returns priceImpactBreakDown even on no-aggregator routes
@@ -156,7 +167,7 @@ export const SupplyWithdraw = ({
                 label={t`How much would you like to supply?`}
                 placeholder={t`Enter amount`}
                 token={selectedSupplyToken}
-                tokenList={inputTokenList}
+                tokenList={supplyTokenList}
                 onTokenSelected={t => onSupplyTokenChange(t)}
                 balance={enabled ? inputBalance : undefined}
                 value={amount}
@@ -208,7 +219,7 @@ export const SupplyWithdraw = ({
                 className="w-full"
                 label={t`You receive`}
                 token={targetToken}
-                tokenList={inputTokenList}
+                tokenList={withdrawTokenList}
                 onTokenSelected={t => onWithdrawOutTokenChange(t)}
                 balance={enabled ? outputBalance : undefined}
                 value={quote?.amountOut ?? 0n}
@@ -246,34 +257,75 @@ export const SupplyWithdraw = ({
           isFetching={isFetchingQuote || (!quote && !quoteErrorMessage)}
           fetchingMessage={t`Fetching quote from Pendle`}
           onExternalLinkClicked={onExternalLinkClicked}
+          // Section 1 "Transaction overview" (expanded by default) — what the
+          // user came for. BUY: amount in, rate, maturity, USDS payout at
+          // maturity. SELL: amount in, realized rate, USDS now. Per APP-268.
+          pinnedData={
+            quote
+              ? flow === PendleFlow.BUY
+                ? [
+                    {
+                      label: t`You supply`,
+                      value: `${formatBigInt(amount, { unit: originDecimals, maxDecimals: 4 })} ${originSymbol}`
+                    },
+                    {
+                      label: t`Effective APY`,
+                      value: apyDisplay,
+                      className: quote.effectiveApy < 0 ? 'text-error' : 'text-bullish',
+                      tooltipTitle: getTooltipById('effective-apy')?.title || '',
+                      tooltipText: getTooltipById('effective-apy')?.tooltip || ''
+                    },
+                    {
+                      label: t`Maturity date`,
+                      value: maturityDisplay
+                    },
+                    {
+                      label: t`Value at maturity`,
+                      value: valueAtMaturity!
+                    }
+                  ]
+                : [
+                    {
+                      label: t`You withdraw`,
+                      value: `${formatBigInt(amount, { unit: originDecimals, maxDecimals: 4 })} ${originSymbol}`
+                    },
+                    {
+                      label: t`Effective APY`,
+                      value: apyDisplay,
+                      className: quote.effectiveApy < 0 ? 'text-error' : 'text-bullish',
+                      tooltipTitle: getTooltipById('effective-apy')?.title || '',
+                      tooltipText: getTooltipById('effective-apy')?.tooltip || ''
+                    },
+                    {
+                      label: t`Maturity date`,
+                      value: maturityDisplay
+                    },
+                    {
+                      label: t`You receive`,
+                      value: formattedReceive!,
+                      tooltipTitle: getTooltipById('early-withdrawal-impact')?.title || '',
+                      tooltipText: getTooltipById('early-withdrawal-impact')?.tooltip || ''
+                    }
+                  ]
+              : undefined
+          }
+          // Section 2 "Transaction details" (collapsed by default) — the
+          // technical breakdown: actual PT amount, min received, slippage,
+          // price impact + breakdown, routing, fee, plus maturity on SELL.
           transactionData={
             quote
               ? [
-                  {
-                    label: flow === PendleFlow.BUY ? t`You supply` : t`You redeem`,
-                    value: `${formatBigInt(amount, { unit: originDecimals, maxDecimals: 4 })} ${originSymbol}`
-                  },
-                  {
-                    label: t`You receive`,
-                    value: formattedReceive!,
-                    ...(flow !== PendleFlow.BUY
-                      ? {
-                          tooltipTitle: getTooltipById('early-withdrawal-impact')?.title || '',
-                          tooltipText: getTooltipById('early-withdrawal-impact')?.tooltip || ''
+                  // BUY: surface the actual PT amount here (the pinned section
+                  // shows the USDS-denominated "Value at maturity" instead).
+                  // SELL: already pinned as "You receive", don't duplicate.
+                  ...(flow === PendleFlow.BUY
+                    ? [
+                        {
+                          label: t`You receive`,
+                          value: formattedReceive!
                         }
-                      : {})
-                  },
-                  {
-                    label: flow === PendleFlow.BUY ? t`Fixed APY locked` : t`Effective APY`,
-                    value: apyDisplay,
-                    className: 'text-bullish',
-                    tooltipTitle: getTooltipById('effective-apy')?.title || '',
-                    tooltipText: getTooltipById('effective-apy')?.tooltip || ''
-                  },
-                  {
-                    label: t`Maturity date`,
-                    value: maturityDisplay
-                  },
+                      ]
+                    : []),
                   {
                     label: t`Min. received`,
                     value: formattedMin!
@@ -284,33 +336,41 @@ export const SupplyWithdraw = ({
                   },
                   {
                     label: t`Price impact`,
-                    value: priceImpactRow,
-                    className: positiveImpactClass
+                    value: priceImpactRow
                   },
                   ...(breakdown
                     ? [
                         {
-                          label: t`  · Pendle AMM`,
-                          value: `${(breakdown.internalPriceImpact * 100).toFixed(3)}%`,
-                          className: positiveImpactClass
+                          label: t`Pendle pool`,
+                          value: `${(-breakdown.internalPriceImpact * 100).toFixed(3)}%`,
+                          labelClassName: 'pl-4 opacity-70',
+                          className: 'opacity-70',
+                          containerClassName: '-mt-2'
                         },
                         {
-                          label: t`  · Aggregator hop`,
-                          value: `${(breakdown.externalPriceImpact * 100).toFixed(3)}%`,
-                          className: positiveImpactClass
-                        }
-                      ]
-                    : []),
-                  ...(aggregatorName
-                    ? [
-                        {
-                          label: t`Routed via`,
-                          value: aggregatorName
+                          // breakdown is only populated when aggregatorName is truthy
+                          label: aggregatorName!,
+                          value: `${(-breakdown.externalPriceImpact * 100).toFixed(3)}%`,
+                          labelClassName: 'pl-4 opacity-70',
+                          className: 'opacity-70',
+                          containerClassName: '-mt-2'
                         }
                       ]
                     : []),
                   {
-                    label: t`Routing fee`,
+                    label: t`Routed via`,
+                    // Route order matches actual execution: BUY does the stable
+                    // swap first then mints PT; SELL burns PT first then swaps
+                    // the underlying to the user's chosen output token. With
+                    // no aggregator, the only venue is the Pendle pool.
+                    value: !aggregatorName
+                      ? 'Pendle pool'
+                      : flow === PendleFlow.BUY
+                        ? `${aggregatorName} → Pendle pool`
+                        : `Pendle pool → ${aggregatorName}`
+                  },
+                  {
+                    label: t`Pendle fee`,
                     value:
                       quote.feeUsd !== undefined ? (
                         `$${quote.feeUsd.toFixed(quote.feeUsd >= 1 ? 2 : 4)}`
