@@ -6,13 +6,13 @@ import {
   MorphoVaultAction
 } from '@/widgets';
 import { Token, type VaultProvider } from '@/hooks';
-import { VaultsIntentMapping, QueryParams } from '@/lib/constants';
+import { QueryParams } from '@/lib/constants';
 import { SharedProps } from '@/modules/app/types/Widgets';
 import { LinkedActionSteps } from '@/modules/config/context/ConfigContext';
 import { useConfigContext } from '@/modules/config/hooks/useConfigContext';
 import { useSearchParams } from 'react-router-dom';
 import { deleteSearchParams } from '@/modules/utils/deleteSearchParams';
-import { VaultsIntent } from '@/lib/enums';
+import { vaultModuleForProvider } from '@/lib/vaults/vaultProviderMapping';
 import { useChainId } from 'wagmi';
 
 type MorphoVaultWidgetPaneProps = SharedProps & {
@@ -49,8 +49,9 @@ export function MorphoVaultWidgetPane({
     widgetState,
     originAmount
   }: WidgetStateChangeParams) => {
-    // Prevent race conditions
-    if (searchParams.get(QueryParams.VaultModule) !== VaultsIntentMapping[VaultsIntent.MORPHO_VAULT_INTENT]) {
+    // Prevent race conditions: only sync when the URL's module matches this
+    // vault's own provider (Spark → `spark`, Morpho → `morpho`).
+    if (searchParams.get(QueryParams.VaultModule) !== vaultModuleForProvider(provider)) {
       return;
     }
 
