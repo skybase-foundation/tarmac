@@ -43,7 +43,14 @@ const QUOTE: PendleConvertQuote = {
 
 const hoisted = vi.hoisted(() => ({
   launchMock: vi.fn(),
-  matured: true
+  matured: true,
+  // Swappable execute fn so tests can prove the latest one fires through onConfirm.
+  currentExecute: (() => undefined) as () => void,
+  // Swappable USD value fn (default ≈$1/token) so a test can force "no value".
+  valueUsd: ((_symbol: string, amount: number) => amount) as (
+    symbol: string,
+    amount: number
+  ) => number | undefined
 }));
 
 vi.mock('@/hooks', async importOriginal => {
@@ -65,14 +72,20 @@ vi.mock('@/hooks', async importOriginal => {
       mutate: () => undefined,
       dataSources: []
     }),
-    useBatchPendleConvert: () => ({
-      execute: () => undefined,
-      reset: () => undefined,
-      prepared: true,
-      isLoading: false,
-      error: undefined,
-      currentCallIndex: 0
-    })
+    useBatchPendleConvert: () => {
+      // Snapshot the current execute at render time so each render's writeHook
+      // closes over the args from that render — matches the real hook's
+      // semantics (a fresh execute closure per render).
+      const captured = hoisted.currentExecute;
+      return {
+        execute: () => captured(),
+        reset: () => undefined,
+        prepared: true,
+        isLoading: false,
+        error: undefined,
+        currentCallIndex: 0
+      };
+    }
   };
 });
 
@@ -86,7 +99,10 @@ vi.mock('@/widgets', async importOriginal => {
       slippage: 0.01,
       setSlippage: () => undefined,
       defaultSlippage: 0.01
-    })
+    }),
+    // Stub the USD value fn so the test doesn't pull in usePrices()/wagmi reads.
+    // Reads the swappable hoisted fn (default ≈$1/token).
+    usePendleUsdValue: () => hoisted.valueUsd
   };
 });
 
@@ -120,6 +136,11 @@ function renderComponent(ui: ReactNode) {
   });
   return {
     container,
+    rerender: (next: ReactNode) => {
+      act(() => {
+        root.render(<I18nProvider i18n={i18n}>{next}</I18nProvider>);
+      });
+    },
     unmount: () => {
       act(() => {
         root.unmount();
@@ -141,6 +162,7 @@ describe('usePendleRedeemModal analytics', () => {
   beforeEach(() => {
     hoisted.launchMock.mockClear();
     hoisted.matured = true;
+    hoisted.valueUsd = (_symbol: string, amount: number) => amount;
   });
 
   afterEach(() => {
@@ -198,11 +220,24 @@ describe('usePendleRedeemModal analytics', () => {
     unmount();
   });
 
-  it('emits a strictly negative amount in analytics.data with PT-balance magnitude', () => {
+  it('emits a strictly negative amount = USD value of the redeemed output leg', () => {
+    // `amount` now values the non-PT output leg (USDS/USDC/underlying the user
+    // receives), not the PT count. Output = QUOTE.amountOut (1_499_500n at 6dp)
+    // = 1.4995; valued ~$1/token by the stubbed value fn; emitted negative as a
+    // withdrawal. (Previously this asserted the PT-balance magnitude of 1.5.)
     const { unmount } = renderComponent(<TestConsumer />);
     const config = hoisted.launchMock.mock.calls[0][0];
     expect(config.analytics.data.amount).toBeLessThan(0);
-    expect(Math.abs(config.analytics.data.amount)).toBeCloseTo(1.5, 6);
+    expect(Math.abs(config.analytics.data.amount)).toBeCloseTo(1.4995, 6);
+    unmount();
+  });
+
+  it('omits amount when the output leg cannot be valued (valueUsd → undefined)', () => {
+    hoisted.valueUsd = () => undefined;
+    const { unmount } = renderComponent(<TestConsumer />);
+    const config = hoisted.launchMock.mock.calls[0][0];
+    expect(config.analytics.widgetName).toBe('fixed');
+    expect('amount' in config.analytics.data).toBe(false);
     unmount();
   });
 
@@ -216,6 +251,48 @@ describe('usePendleRedeemModal analytics', () => {
     expect(data.expiry).toBe(MATURED_MARKET.expiry);
     expect(data.aggregatorType).toBe('KYBERSWAP');
     expect(data.feeUsd).toBe(1.23);
+    unmount();
+  });
+});
+
+describe('usePendleRedeemModal onConfirm freshness', () => {
+  beforeEach(() => {
+    hoisted.launchMock.mockClear();
+    // currentExecute is reassigned per test below, so no clear needed here.
+    hoisted.matured = true;
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('onConfirm invokes the latest writeHook.execute, not the one captured at launch', () => {
+    // Modal opens with the user's initial selection (e.g. underlying as output).
+    // writeHook.execute closes over that render's args.
+    const executeAtLaunch = vi.fn();
+    hoisted.currentExecute = executeAtLaunch;
+
+    const { rerender, unmount } = renderComponent(<TestConsumer />);
+
+    expect(hoisted.launchMock).toHaveBeenCalledTimes(1);
+    const storedOnConfirm = hoisted.launchMock.mock.calls[0][0].onConfirm;
+
+    // User changes something after launch (output token, slippage, or a
+    // background quote refetch lands). The next render of useBatchPendleConvert
+    // produces a new execute closure referencing the new args. Force the
+    // re-render and swap the hoisted execute to model it.
+    const executeAfterChange = vi.fn();
+    hoisted.currentExecute = executeAfterChange;
+    rerender(<TestConsumer openOnMount={false} />);
+
+    // User clicks Confirm. The stored onConfirm — captured at launch — must
+    // route through the ref and call the latest execute, not the stale one.
+    act(() => {
+      storedOnConfirm();
+    });
+
+    expect(executeAtLaunch).not.toHaveBeenCalled();
+    expect(executeAfterChange).toHaveBeenCalledTimes(1);
     unmount();
   });
 });

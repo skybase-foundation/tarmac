@@ -14,7 +14,10 @@ const mockConfig: GeoConfig = {
     rewards: { enabled: true },
     expert: { enabled: true },
     trade: { enabled: true },
-    upgrade: { enabled: true }
+    upgrade: { enabled: true },
+    stake: { enabled: true },
+    vaults: { enabled: true },
+    fixed: { enabled: true }
   },
   isCookiesBannerRequired: false
 };

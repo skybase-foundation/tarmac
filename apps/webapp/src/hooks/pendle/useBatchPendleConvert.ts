@@ -24,16 +24,27 @@ type UseBatchPendleConvertParams = BatchWriteHookParams & {
   /** For BUY: PT token. For WITHDRAW: user-selected output token. */
   outputToken?: `0x${string}`;
   /**
-   * The market's underlying token (the SY's accepted token). When the user-
-   * picked side equals this, the call goes through the no-aggregator path;
-   * otherwise buildVerifiedArgs takes the aggregator branch and pins
-   * tokenMintSy / tokenRedeemSy to this address.
+   * Pendle's underlyingAsset — used as tokenMintSy / tokenRedeemSy on the
+   * aggregator branch in buildVerifiedArgs.
    */
   underlyingToken?: `0x${string}`;
+  /**
+   * Tokens SY accepts directly via getTokensIn() / getTokensOut(). When the
+   * user-side token is one of these, the no-aggregator path is taken. Optional;
+   * defaults to `[underlyingToken]` inside buildVerifiedArgs for single-input
+   * SYs.
+   */
+  syAcceptedTokens?: `0x${string}`[];
   /** For BUY: input amount in wei. For WITHDRAW: PT amount in wei. */
   amountIn?: bigint;
   /** The latest quote from useQuotePendleConvert */
   quote?: PendleConvertQuote;
+  /**
+   * The same slippage value passed to useQuotePendleConvert. Threaded into
+   * buildVerifiedArgs so it can floor `apiMinOut` against
+   * `amountOut * (1 - slippage)` and reject quotes that fall below.
+   */
+  slippage: number;
 };
 
 /**
@@ -60,8 +71,10 @@ export function useBatchPendleConvert({
   inputToken,
   outputToken,
   underlyingToken,
+  syAcceptedTokens,
   amountIn,
   quote,
+  slippage,
   enabled: activeTabEnabled = true,
   shouldUseBatch = true,
   onMutate = () => null,
@@ -114,8 +127,10 @@ export function useBatchPendleConvert({
         inputToken,
         outputToken,
         underlyingToken,
+        syAcceptedTokens,
         amountIn,
-        pinnedPendleSwap
+        pinnedPendleSwap,
+        slippage
       });
       return { verified: v, verifyError: null };
     } catch (e) {
@@ -127,10 +142,12 @@ export function useBatchPendleConvert({
     inputToken,
     outputToken,
     underlyingToken,
+    syAcceptedTokens,
     pinnedPendleSwap,
     amountIn,
     connectedAddress,
-    side
+    side,
+    slippage
   ]);
 
   // Build the call list: optional approve, then convert.

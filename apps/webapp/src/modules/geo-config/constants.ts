@@ -12,7 +12,10 @@ export const FALLBACK_CONFIG: GeoConfig = {
     rewards: { enabled: false, restrictionReason: 'Unable to verify region' },
     expert: { enabled: false, restrictionReason: 'Unable to verify region' },
     trade: { enabled: true }, // Trade is not restricted
-    upgrade: { enabled: true }
+    upgrade: { enabled: true },
+    stake: { enabled: true },
+    vaults: { enabled: true },
+    fixed: { enabled: true }
   },
   isCookiesBannerRequired: true
 };
