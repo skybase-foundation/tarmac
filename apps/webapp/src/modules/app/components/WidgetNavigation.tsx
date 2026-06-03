@@ -36,6 +36,19 @@ interface WidgetNavigationProps {
   currentChainId?: number;
 }
 
+// Temporary: flag recently launched modules with a "new" dot in the nav.
+const NEW_INTENTS: Intent[] = [Intent.FIXED_INTENT];
+const NEW_INTENTS_SEEN_KEY = 'seenNewNavIntents';
+
+function getSeenNewIntents(): Intent[] {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(NEW_INTENTS_SEEN_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 export function WidgetNavigation({
   widgetContent,
   intent,
@@ -52,6 +65,21 @@ export function WidgetNavigation({
   const activeTabRef = useRef<HTMLButtonElement>(null);
   const [height, setHeight] = useState<number>(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [seenNewIntents, setSeenNewIntents] = useState<Intent[]>(getSeenNewIntents);
+  const showNewDot = (widgetIntent: Intent) =>
+    NEW_INTENTS.includes(widgetIntent) && !seenNewIntents.includes(widgetIntent);
+  const markIntentSeen = useCallback((widgetIntent: Intent) => {
+    setSeenNewIntents(prev => {
+      if (!NEW_INTENTS.includes(widgetIntent) || prev.includes(widgetIntent)) return prev;
+      const updated = [...prev, widgetIntent];
+      try {
+        localStorage.setItem(NEW_INTENTS_SEEN_KEY, JSON.stringify(updated));
+      } catch {
+        // ignore storage write failures
+      }
+      return updated;
+    });
+  }, []);
   const {
     linkedActionConfig: { showLinkedAction }
   } = useConfigContext();
@@ -61,6 +89,11 @@ export function WidgetNavigation({
   const { shouldShowHint, isOverflowing } = useScrollHint(tabsListRef, {
     enabled: !showDrawerMenu && !hideTabs
   });
+
+  // Clear the "new" dot once the user lands on the module, regardless of how they got there
+  useEffect(() => {
+    if (intent) markIntentSeen(intent);
+  }, [intent, markIntentSeen]);
 
   // Scroll active tab into view when intent changes
   useEffect(() => {
@@ -242,6 +275,9 @@ export function WidgetNavigation({
                         <Text variant="large" className="flex-1 text-left leading-4 text-inherit">
                           <Trans>{label}</Trans>
                         </Text>
+                        {showNewDot(widgetIntent) && !comingSoon && (
+                          <span className="bg-textEmphasis h-2 w-2 shrink-0 rounded-full" />
+                        )}
                         {comingSoon && (
                           <Text
                             variant="small"
@@ -334,6 +370,9 @@ export function WidgetNavigation({
                                     <Trans>{label}</Trans>
                                   </Text>
                                 </div>
+                                {showNewDot(widgetIntent) && !comingSoon && (
+                                  <span className="bg-textEmphasis absolute top-1.5 right-1.5 h-2 w-2 rounded-full" />
+                                )}
                                 {comingSoon && (
                                   <Text
                                     variant="small"
