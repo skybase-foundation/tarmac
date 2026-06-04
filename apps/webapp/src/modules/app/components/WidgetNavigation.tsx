@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback, JSX } from 'react';
 import { Intent } from '../../../lib/enums';
-import { IntentMapping } from '@/lib/constants';
+import { IntentMapping, isNewIntent } from '@/lib/constants';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../components/ui/tabs';
 import { BP, useBreakpointIndex } from '@/modules/ui/hooks/useBreakpointIndex';
 import { Text } from '@/modules/layout/components/Typography';
@@ -36,6 +36,17 @@ interface WidgetNavigationProps {
   currentChainId?: number;
 }
 
+const NEW_INTENTS_SEEN_KEY = 'seenNewNavIntents';
+
+function getSeenNewIntents(): Intent[] {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(NEW_INTENTS_SEEN_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 export function WidgetNavigation({
   widgetContent,
   intent,
@@ -52,6 +63,21 @@ export function WidgetNavigation({
   const activeTabRef = useRef<HTMLButtonElement>(null);
   const [height, setHeight] = useState<number>(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [seenNewIntents, setSeenNewIntents] = useState<Intent[]>(getSeenNewIntents);
+  const showNewDot = (widgetIntent: Intent) =>
+    isNewIntent(widgetIntent) && !seenNewIntents.includes(widgetIntent);
+  const markIntentSeen = useCallback((widgetIntent: Intent) => {
+    setSeenNewIntents(prev => {
+      if (!isNewIntent(widgetIntent) || prev.includes(widgetIntent)) return prev;
+      const updated = [...prev, widgetIntent];
+      try {
+        localStorage.setItem(NEW_INTENTS_SEEN_KEY, JSON.stringify(updated));
+      } catch {
+        // ignore storage write failures
+      }
+      return updated;
+    });
+  }, []);
   const {
     linkedActionConfig: { showLinkedAction }
   } = useConfigContext();
@@ -61,6 +87,11 @@ export function WidgetNavigation({
   const { shouldShowHint, isOverflowing } = useScrollHint(tabsListRef, {
     enabled: !showDrawerMenu && !hideTabs
   });
+
+  // Clear the "new" dot once the user lands on the module, regardless of how they got there
+  useEffect(() => {
+    if (intent) markIntentSeen(intent);
+  }, [intent, markIntentSeen]);
 
   // Scroll active tab into view when intent changes
   useEffect(() => {
@@ -239,9 +270,14 @@ export function WidgetNavigation({
                         )}
                       >
                         {icon({ color: 'inherit' })}
-                        <Text variant="large" className="flex-1 text-left leading-4 text-inherit">
-                          <Trans>{label}</Trans>
-                        </Text>
+                        <div className="flex flex-1 items-center gap-2">
+                          <Text variant="large" className="text-left leading-4 text-inherit">
+                            <Trans>{label}</Trans>
+                          </Text>
+                          {showNewDot(widgetIntent) && !comingSoon && (
+                            <span className="bg-textEmphasis h-2 w-2 shrink-0 rounded-full" />
+                          )}
+                        </div>
                         {comingSoon && (
                           <Text
                             variant="small"
@@ -334,6 +370,9 @@ export function WidgetNavigation({
                                     <Trans>{label}</Trans>
                                   </Text>
                                 </div>
+                                {showNewDot(widgetIntent) && !comingSoon && (
+                                  <span className="bg-textEmphasis absolute top-1.5 right-1.5 h-2 w-2 rounded-full" />
+                                )}
                                 {comingSoon && (
                                   <Text
                                     variant="small"

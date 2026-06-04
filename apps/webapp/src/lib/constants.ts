@@ -1,4 +1,4 @@
-import { RewardsModule, Savings, Trade, Upgrade, Seal, Expert, Vaults, Convert } from '@/modules/icons';
+import { RewardsModule, Savings, Trade, Upgrade, Stake, Expert, Vaults, Convert } from '@/modules/icons';
 import { ConvertIntent, ExpertIntent, Intent, FixedIntent, VaultsIntent } from './enums';
 import { msg } from '@lingui/core/macro';
 import { MessageDescriptor } from '@lingui/core';
@@ -20,7 +20,6 @@ export enum QueryParams {
   Reset = 'reset',
   Flow = 'flow',
   StakeTab = 'stake_tab',
-  SealTab = 'seal_tab',
   ExpertModule = 'expert_module',
   Vault = 'vault',
   VaultModule = 'vault_module',
@@ -41,13 +40,16 @@ export const IntentMapping = {
   [Intent.TRADE_INTENT]: 'trade',
   [Intent.SAVINGS_INTENT]: 'savings',
   [Intent.REWARDS_INTENT]: 'rewards',
-  [Intent.SEAL_INTENT]: 'seal',
   [Intent.STAKE_INTENT]: 'stake',
   [Intent.EXPERT_INTENT]: 'expert',
   [Intent.VAULTS_INTENT]: 'vaults',
   [Intent.CONVERT_INTENT]: 'convert',
   [Intent.FIXED_INTENT]: 'fixed'
 };
+
+// Recently launched modules, surfaced with a "new" indicator in the nav and suggested actions.
+export const NEW_INTENTS: Intent[] = [Intent.FIXED_INTENT];
+export const isNewIntent = (intent: Intent): boolean => NEW_INTENTS.includes(intent);
 
 export const ExpertIntentMapping: Record<ExpertIntent, string> = {
   [ExpertIntent.STUSDS_INTENT]: 'stusds'
@@ -74,7 +76,6 @@ export const CHAIN_WIDGET_MAP: Record<number, Intent[]> = {
     Intent.SAVINGS_INTENT,
     Intent.UPGRADE_INTENT,
     Intent.TRADE_INTENT,
-    Intent.SEAL_INTENT,
     Intent.STAKE_INTENT,
     Intent.EXPERT_INTENT,
     Intent.VAULTS_INTENT,
@@ -87,7 +88,6 @@ export const CHAIN_WIDGET_MAP: Record<number, Intent[]> = {
     Intent.SAVINGS_INTENT,
     Intent.UPGRADE_INTENT,
     Intent.TRADE_INTENT,
-    Intent.SEAL_INTENT,
     Intent.STAKE_INTENT,
     Intent.EXPERT_INTENT,
     Intent.VAULTS_INTENT,
@@ -113,7 +113,6 @@ export const intentTxt: Record<string, MessageDescriptor> = {
   stusds: msg`stusds`,
   rewards: msg`rewards`,
   balances: msg`balances`,
-  seal: msg`seal`,
   stake: msg`stake`,
   vaults: msg`vaults`,
   convert: msg`convert`,
@@ -127,16 +126,6 @@ export const EXPERT_WIDGET_OPTIONS: {
   {
     id: ExpertIntent.STUSDS_INTENT,
     name: 'stUSDS'
-  }
-];
-
-export const VAULTS_WIDGET_OPTIONS: {
-  id: VaultsIntent;
-  name: string;
-}[] = [
-  {
-    id: VaultsIntent.MORPHO_VAULT_INTENT,
-    name: 'Vault'
   }
 ];
 
@@ -165,8 +154,7 @@ export const linkedActionMetadata = {
   [IntentMapping[Intent.TRADE_INTENT]]: { text: 'Trade Tokens', icon: Trade },
   [IntentMapping[Intent.SAVINGS_INTENT]]: { text: 'Access Savings', icon: Savings },
   [IntentMapping[Intent.REWARDS_INTENT]]: { text: 'Get Rewards', icon: RewardsModule },
-  [IntentMapping[Intent.SEAL_INTENT]]: { text: 'Seal', icon: Seal },
-  [IntentMapping[Intent.STAKE_INTENT]]: { text: 'Activate', icon: Seal },
+  [IntentMapping[Intent.STAKE_INTENT]]: { text: 'Stake', icon: Stake },
   [IntentMapping[Intent.EXPERT_INTENT]]: { text: 'Expert Modules', icon: Expert },
   [IntentMapping[Intent.VAULTS_INTENT]]: { text: 'Vaults', icon: Vaults },
   [IntentMapping[Intent.CONVERT_INTENT]]: { text: 'Convert', icon: Convert }
@@ -194,11 +182,17 @@ export const REFERRAL_CODE: number = Number(import.meta.env.VITE_REFERRAL_CODE) 
 export const BATCH_TX_LEGAL_NOTICE_URL = '/batch-transactions-legal-notice';
 export const BATCH_TX_SUPPORTED_WALLETS_URL = 'https://swiss-knife.xyz/7702beat';
 
+// Deprecated Seal Engine (LockstakeEngine v1, MKR). The UI was removed; this address backs the
+// static /seal-engine withdrawal guide. Mirrors the leftover `sealModuleAddress` in generated.ts,
+// which is no longer in contracts.ts and will be dropped on the next codegen run.
+export const SEAL_ENGINE_V1_ADDRESS = '0x2b16C07D5fD5cC701a0a871eae2aad6DA5fc8f12';
+
 // LocalStorage keys
 export const USER_SETTINGS_KEY = 'user-settings';
 export const GOVERNANCE_MIGRATION_NOTIFICATION_KEY = 'governance-migration-notice-shown';
 export const SPK_STAKING_NOTIFICATION_KEY = 'spk-staking-rewards-notice-shown';
 export const USDS_SKY_REWARDS_NOTIFICATION_KEY = 'usds-sky-rewards-notice-shown';
+export const SEAL_ENGINE_NOTIFICATION_KEY = 'seal-engine-position-notice-shown';
 
 export const WALLET_ICONS = {
   metaMaskSDK: '/wallets/metamask.svg',
