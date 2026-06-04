@@ -182,6 +182,11 @@ export const REFERRAL_CODE: number = Number(import.meta.env.VITE_REFERRAL_CODE) 
 export const BATCH_TX_LEGAL_NOTICE_URL = '/batch-transactions-legal-notice';
 export const BATCH_TX_SUPPORTED_WALLETS_URL = 'https://swiss-knife.xyz/7702beat';
 
+// Deprecated Seal Engine (LockstakeEngine v1, MKR). The UI was removed; this address backs the
+// static /seal-engine withdrawal guide. Mirrors the leftover `sealModuleAddress` in generated.ts,
+// which is no longer in contracts.ts and will be dropped on the next codegen run.
+export const SEAL_ENGINE_V1_ADDRESS = '0x2b16C07D5fD5cC701a0a871eae2aad6DA5fc8f12';
+
 // LocalStorage keys
 export const USER_SETTINGS_KEY = 'user-settings';
 export const GOVERNANCE_MIGRATION_NOTIFICATION_KEY = 'governance-migration-notice-shown';

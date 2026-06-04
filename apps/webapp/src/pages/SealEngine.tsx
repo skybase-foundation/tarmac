@@ -4,6 +4,7 @@ import { ExternalLink } from '@/modules/layout/components/ExternalLink';
 import { HStack } from '@/modules/layout/components/HStack';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { SEAL_ENGINE_V1_ADDRESS } from '@/lib/constants';
 
 // Inline monospace token for contract addresses and function names.
 function Code({ children }: { children: React.ReactNode }) {
@@ -15,7 +16,7 @@ function Code({ children }: { children: React.ReactNode }) {
 const ENGINES = [
   {
     contract: 'LockstakeEngine (v1)',
-    address: '0x2b16C07D5fD5cC701a0a871eae2aad6DA5fc8f12',
+    address: SEAL_ENGINE_V1_ADDRESS,
     denomination: 'MKR'
   }
 ];
