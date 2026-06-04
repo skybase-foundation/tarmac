@@ -1,4 +1,5 @@
 import { MorphoVaultHistory } from './MorphoVaultHistory';
+import { SusdtVaultHistory } from './SusdtVaultHistory';
 import { MorphoVaultBalanceDetails } from './MorphoVaultBalanceDetails';
 import { MorphoVaultInfoDetails } from './MorphoVaultInfoDetails';
 import { MorphoVaultAllocationsDetails } from './MorphoVaultAllocationsDetails';
@@ -84,12 +85,12 @@ export function MorphoVaultDetails({
           </DetailSectionRow>
         </DetailSection>
       )}
-      {/* Transaction history is sourced from the Morpho indexer; no Spark history
-          source exists yet, so the section is Morpho-only for now. */}
-      {isConnectedAndAcceptedTerms && isMorpho && (
+      {/* History source is provider-specific: Morpho vaults read the Morpho
+          indexer; the sUSDT vault reads the Sky Ecosystem subgraph. */}
+      {isConnectedAndAcceptedTerms && (
         <DetailSection title={t`Your ${vaultName} vault transaction history`}>
           <DetailSectionRow>
-            <MorphoVaultHistory vaultAddress={vaultAddress} />
+            {isMorpho ? <MorphoVaultHistory vaultAddress={vaultAddress} /> : <SusdtVaultHistory />}
           </DetailSectionRow>
         </DetailSection>
       )}
