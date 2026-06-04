@@ -1,7 +1,8 @@
 import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useChainId, useChains } from 'wagmi';
-import { QueryParams, mapQueryParamToIntent } from '@/lib/constants';
+import { QueryParams, mapQueryParamToIntent, isNewIntent } from '@/lib/constants';
+import { Intent } from '@/lib/enums';
 import { normalizeUrlParam } from '@/lib/helpers/string/normalizeUrlParam';
 import { isMultichain } from '@/lib/widget-network-map';
 import { useNetworkSwitch } from '@/modules/ui/context/NetworkSwitchContext';
@@ -393,7 +394,8 @@ export function BalancesSuggestedActions({
       rateKey: 'fixedYield',
       subtitle: activeMarkets.length === 1 ? 'Rate: {rate}' : 'Rates up to {rate}',
       module: 'fixedYield',
-      url: '?widget=fixed'
+      url: '?widget=fixed',
+      badge: isNewIntent(Intent.FIXED_INTENT) ? 'New' : undefined
     };
   }, []);
 
@@ -463,7 +465,21 @@ export function BalancesSuggestedActions({
               >
                 <ModuleIcon boxSize={20} className="text-textSecondary shrink-0" />
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <Text className="text-text truncate">{resolved.label}</Text>
+                  <div className="flex min-w-0 items-center gap-2">
+                    <Text className="text-text truncate">{resolved.label}</Text>
+                    {action.badge && (
+                      <span
+                        className={`flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${
+                          action.showMorphoIcon
+                            ? 'bg-[#2973FF]/15 text-[#2973FF]'
+                            : 'bg-textEmphasis/15 text-textEmphasis'
+                        }`}
+                      >
+                        {action.showMorphoIcon && <Morpho className="h-3 w-3 rounded-sm" />}
+                        {action.badge}
+                      </span>
+                    )}
+                  </div>
                   {resolved.subtitle &&
                     (action.rateKey && rateLoading[action.rateKey] ? (
                       <Skeleton className="h-4 w-24" />
@@ -486,30 +502,16 @@ export function BalancesSuggestedActions({
                       </Text>
                     ))}
                 </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  {action.badge && (
-                    <span
-                      className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide uppercase ${
-                        action.showMorphoIcon
-                          ? 'bg-[#2973FF]/15 text-[#2973FF]'
-                          : 'bg-textEmphasis/15 text-textEmphasis'
-                      }`}
-                    >
-                      {action.showMorphoIcon && <Morpho className="h-3.5 w-3.5 rounded-sm" />}
-                      {action.badge}
-                    </span>
-                  )}
-                  <div className="flex -space-x-1.5">
-                    {action.tokens.map(symbol => (
-                      <TokenIcon
-                        key={symbol}
-                        token={{ symbol, name: symbol }}
-                        className="h-5 w-5"
-                        width={20}
-                        showChainIcon={false}
-                      />
-                    ))}
-                  </div>
+                <div className="flex shrink-0 -space-x-1.5">
+                  {action.tokens.map(symbol => (
+                    <TokenIcon
+                      key={symbol}
+                      token={{ symbol, name: symbol }}
+                      className="h-5 w-5"
+                      width={20}
+                      showChainIcon={false}
+                    />
+                  ))}
                 </div>
               </button>
             );
