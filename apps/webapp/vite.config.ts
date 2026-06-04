@@ -45,9 +45,10 @@ export default ({ mode }: { mode: modeEnum }) => {
     script-src 'self'
       https://static.cloudflareinsights.com
       https://challenges.cloudflare.com
+      https://*.googletagmanager.com
       https://*.posthog.com https://e.sky.money;
     style-src 'self' 'unsafe-inline' https://*.posthog.com https://e.sky.money;
-    img-src 'self' data: blob: https://explorer-api.walletconnect.com https://*.posthog.com https://e.sky.money;
+    img-src 'self' data: blob: https://explorer-api.walletconnect.com https://*.google-analytics.com https://*.googletagmanager.com https://*.posthog.com https://e.sky.money;
     font-src 'self';
     connect-src 'self' data:
       https://proxy.sky.money
@@ -81,7 +82,10 @@ export default ({ mode }: { mode: modeEnum }) => {
       https://sky-tenderly.blockanalitica.com
       https://api.cow.fi/
       https://api.morpho.org/
-      https://api.merkl.xyz/
+      https://api-v2.pendle.finance
+      https://*.google-analytics.com
+      https://*.analytics.google.com
+      https://*.googletagmanager.com
       wss://relay.walletconnect.com
       wss://relay.walletconnect.org
       https://pulse.walletconnect.org
@@ -135,26 +139,38 @@ export default ({ mode }: { mode: modeEnum }) => {
       sourcemap: shouldUploadSourcemaps,
       outDir: '../dist',
       emptyOutDir: true,
-      modulePreload: { polyfill: false }
+      modulePreload: { polyfill: false },
+      rolldownOptions: {
+        output: {
+          // Reown's appkit-ui dynamic-imports each Phosphor icon as its own chunk
+          // (50+ per-icon files). Consolidating them shrinks the stale-chunk
+          // surface area after deploys and trades 50 requests for 1.
+          codeSplitting: {
+            groups: [
+              {
+                name: 'phosphor-icons',
+                test: /@phosphor-icons[\\/]webcomponents/
+              }
+            ]
+          }
+        }
+      }
     },
     test: {
-      exclude: [...configDefaults.exclude, '**/test/e2e/**'],
+      exclude: [
+        ...configDefaults.exclude,
+        '**/test/e2e/**',
+        // Inlined hooks (formerly @jetstreamgg/sky-hooks) are vnet-backed integration tests.
+        // They run via vitest.hooks.config.ts, not the fast suite below.
+        path.resolve(__dirname, 'src/hooks/**/*.test.{ts,tsx}')
+      ],
       globals: true,
       environment: 'happy-dom',
       setupFiles: [path.resolve(__dirname, 'src/test/setup.ts')]
     },
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, './src'),
-        // If we're in dev mode, alias the packages to their local TypeScript source code for faster HMR
-        ...(mode === modeEnum.development
-          ? {
-              '@jetstreamgg/sky-hooks': path.resolve(__dirname, '../../packages/hooks/src'),
-              '@jetstreamgg/sky-utils': path.resolve(__dirname, '../../packages/utils/src'),
-              '@jetstreamgg/sky-widgets': path.resolve(__dirname, '../../packages/widgets/src'),
-              '@widgets': path.resolve(__dirname, '../../packages/widgets/src')
-            }
-          : {})
+        '@': path.resolve(__dirname, './src')
       },
       // Dedupe wagmi/viem to prevent multiple instances causing WagmiProviderNotFoundError
       dedupe: ['wagmi', '@wagmi/core', 'viem', '@tanstack/react-query', 'react', 'react-dom']
@@ -162,9 +178,7 @@ export default ({ mode }: { mode: modeEnum }) => {
     optimizeDeps: {
       // Optimize safe-apps-provider dependency to get rid of the Safe connector issue
       // and be able to connect Safe apps
-      include: ['wagmi > @safe-global/safe-apps-provider'],
-      // Exclude utils package from dependency pre-bundling to avoid issues with dynamic imports in i18n
-      exclude: ['@jetstreamgg/sky-utils']
+      include: ['wagmi > @safe-global/safe-apps-provider']
     },
     plugins: [
       simpleHtmlPlugin({

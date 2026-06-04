@@ -7,7 +7,7 @@ import { QueryParams, mapQueryParamToIntent } from '@/lib/constants';
 
 import { useConfigContext } from '@/modules/config/hooks/useConfigContext';
 import { validateLinkedActionSearchParams, validateSearchParams } from '@/modules/utils/validateSearchParams';
-import { useAvailableTokenRewardContracts } from '@jetstreamgg/sky-hooks';
+import { useAvailableTokenRewardContracts } from '@/hooks';
 import { useConnection, useConnectionEffect, useChainId, useChains, useSwitchChain } from 'wagmi';
 import { BP, useBreakpointIndex } from '@/modules/ui/hooks/useBreakpointIndex';
 import { LinkedActionSteps } from '@/modules/config/context/ConfigContext';
@@ -15,6 +15,7 @@ import { useSafeAppNotification } from '../hooks/useSafeAppNotification';
 import { useGovernanceMigrationToast } from '../hooks/useGovernanceMigrationToast';
 import { useSpkStakingRewardsToast } from '../hooks/useSpkStakingRewardsToast';
 import { useUsdsSkyRewardsToast } from '../hooks/useUsdsSkyRewardsToast';
+import { useSealEnginePositionToast } from '../hooks/useSealEnginePositionToast';
 import { useNotificationQueue } from '../hooks/useNotificationQueue';
 import { usePageLoadNotifications } from '../hooks/usePageLoadNotifications';
 import { normalizeUrlParam } from '@/lib/helpers/string/normalizeUrlParam';
@@ -116,11 +117,13 @@ export function MainApp() {
   // 1. Governance Migration (for connected wallets with MKR ≥ 0.05)
   // 2. SPK Staking Rewards (for users with staking positions using SPK rewards)
   // 3. USDS-SKY Rewards (for users with position in deprecated USDS-SKY rewards)
+  // 4. Seal Engine (for users with MKR locked in the deprecated Seal Engine)
 
   // Display notifications based on queue priority
   useGovernanceMigrationToast(isAuthorized && shouldShowNotification('governance-migration'));
   useSpkStakingRewardsToast(isAuthorized && shouldShowNotification('spk-staking-rewards'));
   useUsdsSkyRewardsToast(isAuthorized && shouldShowNotification('usds-sky-rewards'));
+  useSealEnginePositionToast(isAuthorized && shouldShowNotification('seal-engine-position'));
 
   // If the user is connected to a Safe Wallet using WalletConnect, notify they can use the Safe App
   useSafeAppNotification();

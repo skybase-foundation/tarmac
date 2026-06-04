@@ -5,7 +5,7 @@ import { UpgradeDetails } from '@/modules/upgrade/components/UpgradeDetails';
 import { SavingsDetails } from '@/modules/savings/components/SavingsDetails';
 import { StUSDSDetails } from '@/modules/stusds/components/StUSDSDetails';
 import { MorphoVaultDetails } from '@/modules/morpho/components/MorphoVaultDetails';
-import { MORPHO_VAULTS } from '@jetstreamgg/sky-hooks';
+import { MORPHO_VAULTS } from '@/hooks';
 import { ConvertIntentMapping, QueryParams } from '@/lib/constants';
 import { useChainId } from 'wagmi';
 import { useSearchParams } from 'react-router-dom';
@@ -22,8 +22,8 @@ import { BP, useBreakpointIndex } from '@/modules/ui/hooks/useBreakpointIndex';
 import { StakeDetailsPane } from '@/modules/stake/components/StakeDetailsPane';
 import { ExpertDetailsPane } from '@/modules/expert/components/ExpertDetailsPane';
 import { VaultsDetailsPane } from '@/modules/vaults/components/VaultsDetailsPane';
+import { PendleDetailsPane } from '@/modules/pendle/components/PendleDetailsPane';
 import { useConfigContext } from '@/modules/config/hooks/useConfigContext';
-import { SealDetailsPane } from '@/modules/seal/components/SealDetailsPane';
 import { PsmConversionDetails } from '@/modules/convert/components/PsmConversionDetails';
 import { ConvertOverviewDetails } from '@/modules/convert/components/ConvertOverviewDetails';
 
@@ -191,10 +191,10 @@ export const DetailsPane = ({ intent }: DetailsPaneProps) => {
                     </MotionDetailsWrapper>
                   );
               }
-            case Intent.SEAL_INTENT:
+            case Intent.FIXED_INTENT:
               return (
-                <MotionDetailsWrapper key={keys[7]}>
-                  <SealDetailsPane />
+                <MotionDetailsWrapper key={keys[9]}>
+                  <PendleDetailsPane />
                 </MotionDetailsWrapper>
               );
             case Intent.BALANCES_INTENT:

@@ -4,7 +4,7 @@ import { Heading, Text } from '@/modules/layout/components/Typography';
 import { VStack } from '@/modules/layout/components/VStack';
 import { LoadingErrorWrapper } from '@/modules/ui/components/LoadingErrorWrapper';
 import { LoadingStatCard } from '@/modules/ui/components/LoadingStatCard';
-import { PopoverRateInfo as PopoverInfo } from '@jetstreamgg/sky-widgets';
+import { PopoverRateInfo as PopoverInfo } from '@/widgets';
 import { StatsCard } from '@/modules/ui/components/StatsCard';
 import { TokenIcon } from '@/modules/ui/components/TokenIcon';
 import {
@@ -14,8 +14,8 @@ import {
   useStakeRewardContracts,
   lsSkyUsdsRewardAddress,
   lsSkySpkRewardAddress
-} from '@jetstreamgg/sky-hooks';
-import { formatAddress, formatDecimalPercentage, formatNumber } from '@jetstreamgg/sky-utils';
+} from '@/hooks';
+import { formatAddress, formatDecimalPercentage, formatNumber } from '@/utils';
 import { t } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
 import { useMemo } from 'react';
@@ -46,8 +46,6 @@ const StakeRewardsOverviewRow = ({ contractAddress }: { contractAddress: `0x${st
     [historicRewardsTokenData]
   );
 
-  //Get the MKR price from the seal historic data endpoint, since that is used for the total seal TVL
-  //and we want the farm TVLs to sum up to the total seal TVL
   const {
     data: stakeHistoricData,
     isLoading: stakeHistoricIsLoading,

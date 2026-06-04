@@ -1,6 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Trans } from '@lingui/react/macro';
-import { BalancesHistory, ModuleCardVariant, ModulesBalances } from '@jetstreamgg/sky-widgets';
+import { BalancesHistory, ModuleCardVariant, ModulesBalances } from '@/widgets';
 import { getSupportedChainIds } from '@/data/wagmi/config/config.default';
 import { useChainId } from 'wagmi';
 import { useModuleUrls } from '@/modules/app/hooks/useModuleUrls';
@@ -17,7 +17,8 @@ export function ConnectedModalTabs() {
   const { onExternalLinkClicked } = useConfigContext();
   const { isRegionRestricted } = useGeoConfig();
 
-  const { rewardsUrl, savingsUrlMap, sealUrl, stakeUrl, expertOverviewUrl, vaultsUrl } = useModuleUrls();
+  const { rewardsUrl, savingsUrlMap, stakeUrl, expertOverviewUrl, vaultsUrl, fixedYieldUrl } =
+    useModuleUrls();
 
   return (
     <Tabs defaultValue={ConnectedModalTabsEnum.SUPPLIED_FUNDS} className="flex min-h-0 flex-1 flex-col">
@@ -38,10 +39,10 @@ export function ConnectedModalTabs() {
           chainIds={getSupportedChainIds(chainId)}
           rewardsCardUrl={rewardsUrl}
           savingsCardUrlMap={savingsUrlMap}
-          sealCardUrl={sealUrl}
           stakeCardUrl={stakeUrl}
           stusdsCardUrl={expertOverviewUrl}
           vaultsCardUrl={vaultsUrl}
+          fixedYieldCardUrl={fixedYieldUrl}
           hideRestrictedModules={isRegionRestricted}
           onExternalLinkClicked={onExternalLinkClicked}
         />

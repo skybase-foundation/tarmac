@@ -135,22 +135,6 @@ export const banners: Banner[] = [
     display: ['connected', 'disconnected']
   },
   {
-    id: 'about-the-seal-engine',
-    title: 'About the Seal Engine',
-    module: 'seal-engine-banners',
-    description:
-      'The Seal Engine is a module of the Sky Protocol. The MKR and or SKY tokens you supply to the Seal Engine are sealed behind an exit fee in order to provide access to Seal Rewards and encourage a deeper commitment to Sky Ecosystem Governance. With Sky, you always remain in control of your funds.',
-    display: ['disconnected']
-  },
-  {
-    id: 'seal-rewards',
-    title: 'Seal Rewards',
-    module: 'seal-engine-banners',
-    description:
-      'Seal Rewards can be accessed when you supply MKR or SKY to the Seal Engine of the decentralised, non-custodial Sky Protocol. Currently, all Seal Rewards take the form of USDS. Eventually, subject to Sky Ecosystem Governance approval, Seal Rewards may also be available in the form of Sky Star tokens.',
-    display: ['disconnected']
-  },
-  {
     id: 'about-balances',
     title: 'About Balances',
     module: 'balances-banners',
@@ -324,6 +308,14 @@ export const banners: Banner[] = [
     module: 'vaults-banners',
     description:
       'Curated by Sky on Morpho, allocates 80% of deposits into sUSDS earning the Sky Savings Rate, and the remaining 20% to markets with volatile bluechip collateral exposure including stUSDS/USDS, cbBTC/USDS, wstETH/USDS and WETH/USDS.',
+    display: ['connected', 'disconnected']
+  },
+  {
+    id: 'fixed-yield',
+    title: 'Fixed Yield',
+    module: 'fixed-yield-banners',
+    description:
+      "Powered by Pendle, Fixed Yield lets you set your return by a specific maturity date. Supply USDS to fix today's rate until that date. You can sell your position early, but you exit at the market's current price, which may be higher or lower than what you initially paid.",
     display: ['connected', 'disconnected']
   }
 ];

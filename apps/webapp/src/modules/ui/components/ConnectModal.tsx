@@ -12,10 +12,10 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/modules/layout/components/Typography';
 import { Close } from '@/modules/icons';
 import { t } from '@lingui/core/macro';
-import { useIsSafeWallet } from '@jetstreamgg/sky-utils';
+import { useIsSafeWallet } from '@/hooks';
 import { WalletIcon } from './WalletIcon';
 import { WALLET_ICONS } from '@/lib/constants';
-import { ConnectWallet } from '@jetstreamgg/sky-widgets';
+import { ConnectWallet } from '@/widgets';
 import { Trans } from '@lingui/react/macro';
 import { ExternalLink } from '@/modules/layout/components/ExternalLink';
 import { reportError } from '@/modules/sentry/reportError';
@@ -262,6 +262,7 @@ export function ConnectModal({ open, onOpenChange }: ConnectModalProps) {
   return (
     <Dialog open={open && !hasWalletOverlay} onOpenChange={onOpenChange}>
       <DialogContent
+        aria-describedby={undefined}
         className="bg-containerDark max-h-[calc(100dvh-32px)] gap-6 overflow-auto p-4 sm:max-w-[490px] sm:min-w-[490px]"
         onOpenAutoFocus={e => e.preventDefault()}
         onCloseAutoFocus={e => e.preventDefault()}

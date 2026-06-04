@@ -1,9 +1,9 @@
 import React, { useRef, useEffect, useState, useCallback, JSX } from 'react';
 import { Intent } from '../../../lib/enums';
-import { IntentMapping } from '@/lib/constants';
+import { IntentMapping, isNewIntent } from '@/lib/constants';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../components/ui/tabs';
 import { BP, useBreakpointIndex } from '@/modules/ui/hooks/useBreakpointIndex';
-import { Heading, Text } from '@/modules/layout/components/Typography';
+import { Text } from '@/modules/layout/components/Typography';
 import { Trans } from '@lingui/react/macro';
 import { WidgetContent } from '../types/Widgets';
 import { AnimatePresence, motion } from 'motion/react';
@@ -36,6 +36,17 @@ interface WidgetNavigationProps {
   currentChainId?: number;
 }
 
+const NEW_INTENTS_SEEN_KEY = 'seenNewNavIntents';
+
+function getSeenNewIntents(): Intent[] {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(NEW_INTENTS_SEEN_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 export function WidgetNavigation({
   widgetContent,
   intent,
@@ -52,6 +63,21 @@ export function WidgetNavigation({
   const activeTabRef = useRef<HTMLButtonElement>(null);
   const [height, setHeight] = useState<number>(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [seenNewIntents, setSeenNewIntents] = useState<Intent[]>(getSeenNewIntents);
+  const showNewDot = (widgetIntent: Intent) =>
+    isNewIntent(widgetIntent) && !seenNewIntents.includes(widgetIntent);
+  const markIntentSeen = useCallback((widgetIntent: Intent) => {
+    setSeenNewIntents(prev => {
+      if (!isNewIntent(widgetIntent) || prev.includes(widgetIntent)) return prev;
+      const updated = [...prev, widgetIntent];
+      try {
+        localStorage.setItem(NEW_INTENTS_SEEN_KEY, JSON.stringify(updated));
+      } catch {
+        // ignore storage write failures
+      }
+      return updated;
+    });
+  }, []);
   const {
     linkedActionConfig: { showLinkedAction }
   } = useConfigContext();
@@ -61,6 +87,11 @@ export function WidgetNavigation({
   const { shouldShowHint, isOverflowing } = useScrollHint(tabsListRef, {
     enabled: !showDrawerMenu && !hideTabs
   });
+
+  // Clear the "new" dot once the user lands on the module, regardless of how they got there
+  useEffect(() => {
+    if (intent) markIntentSeen(intent);
+  }, [intent, markIntentSeen]);
 
   // Scroll active tab into view when intent changes
   useEffect(() => {
@@ -215,16 +246,12 @@ export function WidgetNavigation({
             </SheetTrigger>
             <SheetContent
               side="left"
+              aria-describedby={undefined}
               className="border-borderPrimary w-[280px] bg-black/10 p-0 backdrop-blur-xl"
               closeButtonClassName="text-white"
               closeIconClassName="size-[22px]"
             >
               <div className="flex h-full flex-col">
-                <div className="p-6 pb-4">
-                  <Heading>
-                    <Trans>Menu</Trans>
-                  </Heading>
-                </div>
                 <div className="mt-10 flex-1 overflow-y-auto px-3 pb-6">
                   {widgetContent.map(group =>
                     group.items.map(([widgetIntent, label, icon, , comingSoon, options]) => (
@@ -243,9 +270,14 @@ export function WidgetNavigation({
                         )}
                       >
                         {icon({ color: 'inherit' })}
-                        <Text variant="large" className="flex-1 text-left leading-4 text-inherit">
-                          <Trans>{label}</Trans>
-                        </Text>
+                        <div className="flex flex-1 items-center gap-2">
+                          <Text variant="large" className="text-left leading-4 text-inherit">
+                            <Trans>{label}</Trans>
+                          </Text>
+                          {showNewDot(widgetIntent) && !comingSoon && (
+                            <span className="bg-textEmphasis h-2 w-2 shrink-0 rounded-full" />
+                          )}
+                        </div>
                         {comingSoon && (
                           <Text
                             variant="small"
@@ -338,6 +370,9 @@ export function WidgetNavigation({
                                     <Trans>{label}</Trans>
                                   </Text>
                                 </div>
+                                {showNewDot(widgetIntent) && !comingSoon && (
+                                  <span className="bg-textEmphasis absolute top-1.5 right-1.5 h-2 w-2 rounded-full" />
+                                )}
                                 {comingSoon && (
                                   <Text
                                     variant="small"
@@ -364,7 +399,13 @@ export function WidgetNavigation({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3, ease: 'easeOut' }}
-                  className="bg-textSecondary/20 absolute bottom-4 left-1/2 translate-x-[-21px] rounded-full p-2"
+                  onClick={() => {
+                    tabsListRef.current?.scrollTo({
+                      top: tabsListRef.current.scrollHeight,
+                      behavior: 'smooth'
+                    });
+                  }}
+                  className="bg-textSecondary/20 hover:bg-textSecondary/30 absolute bottom-4 left-1/2 translate-x-[-21px] cursor-pointer rounded-full p-2"
                 >
                   <ChevronDown
                     className="scroll-hint-indicator text-textSecondary"

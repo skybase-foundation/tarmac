@@ -1,7 +1,8 @@
 import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useChainId, useChains } from 'wagmi';
-import { QueryParams, mapQueryParamToIntent } from '@/lib/constants';
+import { QueryParams, mapQueryParamToIntent, isNewIntent } from '@/lib/constants';
+import { Intent } from '@/lib/enums';
 import { normalizeUrlParam } from '@/lib/helpers/string/normalizeUrlParam';
 import { isMultichain } from '@/lib/widget-network-map';
 import { useNetworkSwitch } from '@/modules/ui/context/NetworkSwitchContext';
@@ -18,28 +19,50 @@ import {
   useHighestRateFromChartData,
   filterDeprecatedRewardContracts,
   useStakeRewardContracts,
-  useMultipleRewardsChartInfo
-} from '@jetstreamgg/sky-hooks';
+  useMultipleRewardsChartInfo,
+  PENDLE_MARKETS,
+  isMarketMatured,
+  usePendleMarketsApiData
+} from '@/hooks';
 import {
   formatDecimalPercentage,
   calculateApyFromStr,
   isTestnetId,
   isMainnetId,
   chainId as chainIdConstants
-} from '@jetstreamgg/sky-utils';
-import { Savings, Upgrade, RewardsModule, Stake, Expert, Vaults, Trade, Convert } from '@/modules/icons';
+} from '@/utils';
+import {
+  Savings,
+  Upgrade,
+  RewardsModule,
+  Stake,
+  Expert,
+  Vaults,
+  Trade,
+  Convert,
+  Pendle
+} from '@/modules/icons';
 import { Skeleton } from '@/components/ui/skeleton';
 import { type IconProps } from '@/modules/icons/Icon';
-import { Morpho, PopoverRateInfo, type PopoverTooltipType } from '@jetstreamgg/sky-widgets';
+import { Morpho, PopoverRateInfo, type PopoverTooltipType } from '@/widgets';
 import { useGeoConfig } from '@/modules/geo-config';
 import type { ModuleId } from '@/modules/geo-config';
 
 type BalancesAction = {
   label: string;
   tokens: string[];
-  module: 'convert' | 'morpho' | 'rewards' | 'savings' | 'stusds' | 'stake' | 'trade' | 'upgrade';
+  module:
+    | 'convert'
+    | 'morpho'
+    | 'rewards'
+    | 'savings'
+    | 'stusds'
+    | 'stake'
+    | 'trade'
+    | 'upgrade'
+    | 'fixedYield';
   url: string;
-  rateKey?: 'vaults' | 'rewards' | 'savings' | 'stusds' | 'staking';
+  rateKey?: 'vaults' | 'rewards' | 'savings' | 'stusds' | 'staking' | 'fixedYield';
   badge?: string;
   showMorphoIcon?: boolean;
   subtitle?: string;
@@ -140,15 +163,17 @@ const MODULE_ICONS: Record<BalancesAction['module'], (props: IconProps) => React
   rewards: RewardsModule,
   stake: Stake,
   stusds: Expert,
-  morpho: Vaults
+  morpho: Vaults,
+  fixedYield: Pendle
 };
 
-const RATE_TOOLTIP_TYPES: Record<NonNullable<BalancesAction['rateKey']>, PopoverTooltipType> = {
+const RATE_TOOLTIP_TYPES: Partial<Record<NonNullable<BalancesAction['rateKey']>, PopoverTooltipType>> = {
   vaults: 'morpho',
   rewards: 'str',
   savings: 'ssr',
   stusds: 'stusds',
-  staking: 'srr'
+  staking: 'srr',
+  fixedYield: 'fixedYield'
 };
 
 function resolveAction(
@@ -223,6 +248,16 @@ function useActionRates(
   const stakeHighestRateData = useHighestRateFromChartData(stakeRewardsChartsInfoData || []);
   const stakingLoading = stakeContractsLoading || stakeChartsLoading;
 
+  const { data: pendleMarketsApi, isLoading: pendleMarketsLoading } = usePendleMarketsApiData();
+  const pendleMaxRate = useMemo(() => {
+    if (!pendleMarketsApi) return 0;
+    return PENDLE_MARKETS.reduce((max, market) => {
+      if (isMarketMatured(market.expiry)) return max;
+      const apy = pendleMarketsApi[market.marketAddress]?.impliedApy ?? 0;
+      return apy > max ? apy : max;
+    }, 0);
+  }, [pendleMarketsApi]);
+
   return useMemo(() => {
     if (!hasRates) return { rates: {}, loading: {} };
 
@@ -281,6 +316,11 @@ function useActionRates(
       }
     }
 
+    if (rateKeys.has('fixedYield')) {
+      loading.fixedYield = pendleMarketsLoading;
+      rates.fixedYield = pendleMaxRate > 0 ? formatDecimalPercentage(pendleMaxRate) : '—';
+    }
+
     return { rates, loading };
   }, [
     hasRates,
@@ -294,7 +334,9 @@ function useActionRates(
     stUsdsLoading,
     vaultsLoading,
     rewardsLoading,
-    stakingLoading
+    stakingLoading,
+    pendleMarketsLoading,
+    pendleMaxRate
   ]);
 }
 
@@ -343,8 +385,27 @@ export function BalancesSuggestedActions({
     trade: 'trade'
   };
 
+  const fixedYieldAction = useMemo<BalancesAction>(() => {
+    const activeMarkets = PENDLE_MARKETS.filter(m => !isMarketMatured(m.expiry));
+    const activePtSymbols = activeMarkets.map(m => `PT-${m.underlyingSymbol}`);
+    return {
+      label: 'Fixed Yield Markets',
+      tokens: activePtSymbols,
+      rateKey: 'fixedYield',
+      subtitle: activeMarkets.length === 1 ? 'Rate: {rate}' : 'Rates up to {rate}',
+      module: 'fixedYield',
+      url: '?widget=fixed',
+      badge: isNewIntent(Intent.FIXED_INTENT) ? 'New' : undefined
+    };
+  }, []);
+
   const actions = useMemo(() => {
-    let result = widget === 'stables' ? STABLE_ACTIONS : widget === 'sky' ? SKY_ACTIONS : TOKEN_ACTIONS;
+    let result =
+      widget === 'stables'
+        ? [...STABLE_ACTIONS, fixedYieldAction]
+        : widget === 'sky'
+          ? SKY_ACTIONS
+          : TOKEN_ACTIONS;
     if (restrictedModules) {
       result = result.filter(action => restrictedModules.includes(action.module));
     }
@@ -353,7 +414,7 @@ export function BalancesSuggestedActions({
       return !geoModuleId || isModuleEnabled(geoModuleId);
     });
     return result;
-  }, [widget, restrictedModules, isModuleEnabled]);
+  }, [widget, restrictedModules, isModuleEnabled, fixedYieldAction]);
 
   const { rates: rateMap, loading: rateLoading } = useActionRates(actions, chainId);
 
@@ -404,7 +465,21 @@ export function BalancesSuggestedActions({
               >
                 <ModuleIcon boxSize={20} className="text-textSecondary shrink-0" />
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <Text className="text-text truncate">{resolved.label}</Text>
+                  <div className="flex min-w-0 items-center gap-2">
+                    <Text className="text-text truncate">{resolved.label}</Text>
+                    {action.badge && (
+                      <span
+                        className={`flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${
+                          action.showMorphoIcon
+                            ? 'bg-[#2973FF]/15 text-[#2973FF]'
+                            : 'bg-textEmphasis/15 text-textEmphasis'
+                        }`}
+                      >
+                        {action.showMorphoIcon && <Morpho className="h-3 w-3 rounded-sm" />}
+                        {action.badge}
+                      </span>
+                    )}
+                  </div>
                   {resolved.subtitle &&
                     (action.rateKey && rateLoading[action.rateKey] ? (
                       <Skeleton className="h-4 w-24" />
@@ -414,41 +489,29 @@ export function BalancesSuggestedActions({
                         className={`flex items-center gap-1 ${action.rateKey && rateMap[action.rateKey] !== '—' ? 'text-bullish' : 'text-textSecondary'}`}
                       >
                         {resolved.subtitle}
-                        {action.rateKey && rateMap[action.rateKey] !== '—' && (
-                          <PopoverRateInfo
-                            type={RATE_TOOLTIP_TYPES[action.rateKey]}
-                            width={12}
-                            height={12}
-                            iconClassName="text-textSecondary"
-                          />
-                        )}
+                        {action.rateKey &&
+                          rateMap[action.rateKey] !== '—' &&
+                          RATE_TOOLTIP_TYPES[action.rateKey] && (
+                            <PopoverRateInfo
+                              type={RATE_TOOLTIP_TYPES[action.rateKey]!}
+                              width={12}
+                              height={12}
+                              iconClassName="text-textSecondary"
+                            />
+                          )}
                       </Text>
                     ))}
                 </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  {action.badge && (
-                    <span
-                      className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide uppercase ${
-                        action.showMorphoIcon
-                          ? 'bg-[#2973FF]/15 text-[#2973FF]'
-                          : 'bg-textEmphasis/15 text-textEmphasis'
-                      }`}
-                    >
-                      {action.showMorphoIcon && <Morpho className="h-3.5 w-3.5 rounded-sm" />}
-                      {action.badge}
-                    </span>
-                  )}
-                  <div className="flex -space-x-1.5">
-                    {action.tokens.map(symbol => (
-                      <TokenIcon
-                        key={symbol}
-                        token={{ symbol, name: symbol }}
-                        className="h-5 w-5"
-                        width={20}
-                        showChainIcon={false}
-                      />
-                    ))}
-                  </div>
+                <div className="flex shrink-0 -space-x-1.5">
+                  {action.tokens.map(symbol => (
+                    <TokenIcon
+                      key={symbol}
+                      token={{ symbol, name: symbol }}
+                      className="h-5 w-5"
+                      width={20}
+                      showChainIcon={false}
+                    />
+                  ))}
                 </div>
               </button>
             );
