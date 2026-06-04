@@ -5,11 +5,13 @@ import { parseEther } from 'viem';
 import {
   GOVERNANCE_MIGRATION_NOTIFICATION_KEY,
   SPK_STAKING_NOTIFICATION_KEY,
-  USDS_SKY_REWARDS_NOTIFICATION_KEY
+  USDS_SKY_REWARDS_NOTIFICATION_KEY,
+  SEAL_ENGINE_NOTIFICATION_KEY
 } from '@/lib/constants';
 import { NotificationConfig } from './useNotificationQueue';
 import { useHasSpkStakingPositions } from './useHasSpkStakingPositions';
 import { useHasUsdsSkyRewardsPosition } from './useHasUsdsSkyRewardsPosition';
+import { useHasSealEnginePosition } from './useHasSealEnginePosition';
 
 /**
  * Hook to manage page load notifications configuration.
@@ -19,6 +21,7 @@ import { useHasUsdsSkyRewardsPosition } from './useHasUsdsSkyRewardsPosition';
  * 1. Governance Migration (requires MKR balance)
  * 2. SPK Staking Rewards (requires staking positions with SPK reward)
  * 3. USDS-SKY Rewards (requires position in deprecated USDS-SKY rewards)
+ * 4. Seal Engine (requires MKR locked in the deprecated Seal Engine)
  */
 export const usePageLoadNotifications = (): NotificationConfig[] => {
   const { address, isConnected } = useConnection();
@@ -49,6 +52,9 @@ export const usePageLoadNotifications = (): NotificationConfig[] => {
   // Check if user has USDS-SKY rewards position
   const { hasPosition: hasUsdsSkyPosition, isReady: usdsSkyPositionReady } = useHasUsdsSkyRewardsPosition();
 
+  // Check if user has MKR locked in the deprecated Seal Engine
+  const { hasPosition: hasSealEnginePosition, isReady: sealEnginePositionReady } = useHasSealEnginePosition();
+
   // Define notification configurations with priority order
   const notificationConfigs: NotificationConfig[] = useMemo(
     () => [
@@ -72,6 +78,13 @@ export const usePageLoadNotifications = (): NotificationConfig[] => {
         isReady: () => usdsSkyPositionReady, // Wait for rewards balance to load
         checkConditions: () => isConnected && hasUsdsSkyPosition,
         hasBeenShown: () => localStorage.getItem(USDS_SKY_REWARDS_NOTIFICATION_KEY) === 'true'
+      },
+      {
+        id: 'seal-engine-position',
+        priority: 4,
+        isReady: () => sealEnginePositionReady, // Wait for the subgraph read to load
+        checkConditions: () => isConnected && hasSealEnginePosition,
+        hasBeenShown: () => localStorage.getItem(SEAL_ENGINE_NOTIFICATION_KEY) === 'true'
       }
     ],
     [
@@ -82,7 +95,9 @@ export const usePageLoadNotifications = (): NotificationConfig[] => {
       spkPositionsReady,
       hasSpkPositions,
       usdsSkyPositionReady,
-      hasUsdsSkyPosition
+      hasUsdsSkyPosition,
+      sealEnginePositionReady,
+      hasSealEnginePosition
     ]
   );
 

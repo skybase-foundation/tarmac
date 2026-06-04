@@ -187,6 +187,7 @@ export const USER_SETTINGS_KEY = 'user-settings';
 export const GOVERNANCE_MIGRATION_NOTIFICATION_KEY = 'governance-migration-notice-shown';
 export const SPK_STAKING_NOTIFICATION_KEY = 'spk-staking-rewards-notice-shown';
 export const USDS_SKY_REWARDS_NOTIFICATION_KEY = 'usds-sky-rewards-notice-shown';
+export const SEAL_ENGINE_NOTIFICATION_KEY = 'seal-engine-position-notice-shown';
 
 export const WALLET_ICONS = {
   metaMaskSDK: '/wallets/metamask.svg',
