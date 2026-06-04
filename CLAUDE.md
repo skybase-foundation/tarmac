@@ -148,7 +148,7 @@ pnpm messages        # Extract and compile translations
 ## Environment Setup
 
 - Node.js v24+ required
-- pnpm v11.0.8+ required
+- pnpm v11.5.0+ required
 - Key environment variables:
   - `TENDERLY_API_KEY` - For test network forking
   - `VITE_PROXY_ORIGIN` - Origin of the Sky RPC/indexer proxy (RPC URLs are built as `${VITE_PROXY_ORIGIN}/rpc/<chainId>`)
