@@ -53,8 +53,12 @@ export function MorphoVaultInfoDetails({
     query: { enabled: !isMorpho && !!assetAddress && !!vaultAddress }
   });
 
-  // TVL: API total assets when present, falling back to on-chain `totalAssets`.
-  const totalAssets = marketData?.totalAssets ?? onChainData?.totalAssets;
+  // TVL: Morpho reads its market API. For Spark, on-chain ERC-4626 `totalAssets()`
+  // is authoritative and real-time — and correct on whatever chain the user is on
+  // (a fork/testnet reflects its own state, where the API would report mainnet). It
+  // also matches the in-widget card, which already reads on-chain. Fall back to the
+  // API only if the on-chain read is unavailable.
+  const totalAssets = isMorpho ? marketData?.totalAssets : (onChainData?.totalAssets ?? marketData?.totalAssets);
   // Available liquidity: API vault-level figure (summed `liquidity[]`), falling
   // back to the on-chain vault buffer for Spark.
   const liquidity = marketData?.liquidity ?? onChainLiquidity;
