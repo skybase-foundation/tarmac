@@ -18,7 +18,13 @@ import { isUserRejectedRequestError } from '@/modules/utils/isUserRejectedReques
 
 export function TermsModal() {
   const { closeModal, isModalOpen, openModal } = useTermsModal();
-  const { isCheckingTerms, termsCheckError, retryTermsCheck, setHasAcceptedTerms } = useConnectedContext();
+  const {
+    isCheckingTerms,
+    termsCheckError,
+    retryTermsCheck,
+    isConnectedAndAcceptedTerms,
+    setHasAcceptedTerms
+  } = useConnectedContext();
   const [isChecked, setIsChecked] = useState(false);
   const [signStatus, setSignStatus] = useState<'idle' | 'loading' | 'signing' | 'error'>('idle');
   const [hasScrolledToEnd, setHasScrolledToEnd] = useState(false);
@@ -104,7 +110,9 @@ export function TermsModal() {
       setSignStatus('idle');
       setIsChecked(false);
       setHasScrolledToEnd(false);
-      if (termsCheckError) {
+      // Dismissing the modal without accepting must disconnect the wallet, otherwise wagmi stays
+      // connected while the terms-gated app UI shows "not connected" (split-brain state).
+      if (!isConnectedAndAcceptedTerms) {
         disconnect();
       }
       closeModal();
