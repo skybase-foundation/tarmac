@@ -659,7 +659,7 @@ const VaultWidgetWrapped = ({
   );
 };
 
-export const VaultWidget = withWidgetProvider(VaultWidgetWrapped, 'MorphoVaultWidget');
+export const VaultWidget = withWidgetProvider(VaultWidgetWrapped, 'VaultWidget');
 
 /** @deprecated Use {@link VaultWidget}. Kept as a thin alias. */
 export const MorphoVaultWidget = VaultWidget;

@@ -17,7 +17,7 @@ const stubTxResult = {
   reset: () => {}
 };
 
-vi.mock('@/widgets/MorphoVaultWidget/hooks/useVaultTransactions', () => ({
+vi.mock('@/widgets/VaultWidget/hooks/useVaultTransactions', () => ({
   useVaultTransactions: (params: Record<string, unknown>) => {
     captured.params = params;
     return {
