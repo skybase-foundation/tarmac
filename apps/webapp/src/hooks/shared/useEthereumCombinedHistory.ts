@@ -3,7 +3,6 @@ import { useUpgradeHistory } from '../upgrade/useUpgradeHistory';
 import { useCowswapTradeHistory } from '../trade/useCowswapTradeHistory';
 import { useAllRewardsUserHistory } from '../rewards/useAllRewardsUserHistory';
 import { useMemo } from 'react';
-import { useSealHistory } from '../seal/useSealHistory';
 import { useStakeHistory } from '../stake/useStakeHistory';
 import { useStUsdsHistory } from '../stusds/useStUsdsHistory';
 import { useMorphoVaultHistory } from '../morpho';
@@ -15,7 +14,6 @@ export function useEthereumCombinedHistory() {
   const upgradeHistory = useUpgradeHistory();
   const tradeHistory = useCowswapTradeHistory({ chainId: 1 });
   const combinedRewardHistory = useAllRewardsUserHistory();
-  const sealHistory = useSealHistory();
   const stakeHistory = useStakeHistory();
   const stUsdsHistory = useStUsdsHistory();
   const morphoVaultsHistory = useMorphoVaultHistory();
@@ -28,7 +26,6 @@ export function useEthereumCombinedHistory() {
       ...(upgradeHistory.data || []),
       ...(tradeHistory.data || []),
       ...(combinedRewardHistory.data || []),
-      ...(sealHistory.data || []),
       ...(stakeHistory.data || []),
       ...(stUsdsHistory.data || []),
       ...(morphoVaultsHistory.data || []),
@@ -40,7 +37,6 @@ export function useEthereumCombinedHistory() {
     upgradeHistory.data,
     tradeHistory.data,
     combinedRewardHistory.data,
-    sealHistory.data,
     stakeHistory.data,
     stUsdsHistory.data,
     morphoVaultsHistory.data,
@@ -55,7 +51,6 @@ export function useEthereumCombinedHistory() {
       tradeHistory.isLoading ||
       upgradeHistory.isLoading ||
       combinedRewardHistory.isLoading ||
-      sealHistory.isLoading ||
       stakeHistory.isLoading ||
       stUsdsHistory.isLoading ||
       morphoVaultsHistory.isLoading ||
@@ -66,7 +61,6 @@ export function useEthereumCombinedHistory() {
       upgradeHistory.error ||
       tradeHistory.error ||
       combinedRewardHistory.error ||
-      sealHistory.error ||
       stakeHistory.error ||
       stUsdsHistory.error ||
       morphoVaultsHistory.error ||
@@ -77,7 +71,6 @@ export function useEthereumCombinedHistory() {
       upgradeHistory.mutate();
       tradeHistory.mutate();
       combinedRewardHistory.mutate();
-      sealHistory.mutate();
       stakeHistory.mutate();
       stUsdsHistory.mutate();
       morphoVaultsHistory.mutate();

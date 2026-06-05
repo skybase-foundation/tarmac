@@ -24,7 +24,6 @@ import { ExpertDetailsPane } from '@/modules/expert/components/ExpertDetailsPane
 import { VaultsDetailsPane } from '@/modules/vaults/components/VaultsDetailsPane';
 import { PendleDetailsPane } from '@/modules/pendle/components/PendleDetailsPane';
 import { useConfigContext } from '@/modules/config/hooks/useConfigContext';
-import { SealDetailsPane } from '@/modules/seal/components/SealDetailsPane';
 import { PsmConversionDetails } from '@/modules/convert/components/PsmConversionDetails';
 import { ConvertOverviewDetails } from '@/modules/convert/components/ConvertOverviewDetails';
 
@@ -195,12 +194,6 @@ export const DetailsPane = ({ intent }: DetailsPaneProps) => {
                     </MotionDetailsWrapper>
                   );
               }
-            case Intent.SEAL_INTENT:
-              return (
-                <MotionDetailsWrapper key={keys[7]}>
-                  <SealDetailsPane />
-                </MotionDetailsWrapper>
-              );
             case Intent.FIXED_INTENT:
               return (
                 <MotionDetailsWrapper key={keys[9]}>

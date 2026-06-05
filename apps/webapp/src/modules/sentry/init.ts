@@ -59,7 +59,16 @@ export function initSentry(): void {
       // hashed chunk URLs baked into its module graph; the next __vitePreload
       // 404s. User just needs to refresh — not actionable.
       /Failed to fetch dynamically imported module.*\/assets\/.+\.js/,
-      /Importing a module script failed.*\/assets\/.+\.js/
+      /Importing a module script failed.*\/assets\/.+\.js/,
+      // MetaMask multichain SDK transport handshake timeout during wallet
+      // connect (@metamask/connect-multichain throws TransportTimeoutError).
+      // A client-side network timeout — common on high-latency / filtered
+      // networks (e.g. CN) — not actionable on our side. The user already sees
+      // a "Failed to connect. Please try again." prompt in ConnectModal, and
+      // it reports 0 affected users (fires pre-connection). Global match
+      // because ~10% of events arrive via wagmi auto-reconnect with no `flow`
+      // tag, so a flow-scoped beforeSend filter would miss them (WEBAPP-5N).
+      /Transport request timed out/
     ],
     integrations: [
       Sentry.thirdPartyErrorFilterIntegration({

@@ -12,6 +12,11 @@ describe('isUserRejectedRequestError', () => {
     expect(isUserRejectedRequestError({ message: 'The user rejected the request.' })).toBe(true);
   });
 
+  it('matches wallet SDK modal-dismissal rejections', () => {
+    expect(isUserRejectedRequestError({ message: 'User closed modal' })).toBe(true);
+    expect(isUserRejectedRequestError({ message: '[binance-w3w] User closed modal' })).toBe(true);
+  });
+
   it('does not match unrelated wallet errors', () => {
     expect(isUserRejectedRequestError({ code: -32000, message: 'execution reverted' })).toBe(false);
   });

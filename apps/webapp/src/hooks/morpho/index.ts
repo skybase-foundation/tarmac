@@ -26,7 +26,7 @@ export {
   type MorphoIdleLiquidityAllocation,
   type MorphoVaultAllocationsData,
   type MorphoVaultAllocationsHook
-} from './morpho.d';
+} from './morpho';
 export {
   useMorphoVaultRewards,
   type MorphoVaultReward,
