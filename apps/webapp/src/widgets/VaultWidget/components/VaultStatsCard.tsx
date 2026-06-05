@@ -7,10 +7,10 @@ import { Text } from '@/widgets/shared/components/ui/Typography';
 import { Skeleton } from '@/widgets/components/ui/skeleton';
 import { StatsAccordionCard } from '@/widgets/shared/components/ui/card/StatsAccordionCard';
 import { positionAnimations } from '@/widgets/shared/animation/presets';
-import { MorphoVaultStatsCardCore } from './MorphoVaultStatsCardCore';
+import { VaultStatsCardCore } from './VaultStatsCardCore';
 import type { VaultProvider } from '@/hooks';
 
-type MorphoVaultStatsCardProps = {
+type VaultStatsCardProps = {
   /** Whether data is loading */
   isLoading: boolean;
   /** Vault contract address */
@@ -37,7 +37,7 @@ type MorphoVaultStatsCardProps = {
   onExternalLinkClicked?: (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void;
 };
 
-export const MorphoVaultStatsCard = ({
+export const VaultStatsCard = ({
   isLoading,
   vaultAddress,
   vaultName,
@@ -50,7 +50,7 @@ export const MorphoVaultStatsCard = ({
   shareDecimals,
   isConnectedAndEnabled,
   onExternalLinkClicked
-}: MorphoVaultStatsCardProps) => {
+}: VaultStatsCardProps) => {
   const chainId = useChainId();
 
   const accordionContent = (
@@ -101,7 +101,7 @@ export const MorphoVaultStatsCard = ({
   );
 
   return (
-    <MorphoVaultStatsCardCore
+    <VaultStatsCardCore
       vaultName={vaultName}
       assetSymbol={assetSymbol}
       vaultAddress={vaultAddress}

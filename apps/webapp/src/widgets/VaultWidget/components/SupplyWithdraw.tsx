@@ -8,7 +8,7 @@ import { TransactionOverview } from '@/widgets/shared/components/ui/transaction/
 import { useContext, useMemo } from 'react';
 import { WidgetContext } from '@/widgets/context/WidgetContext';
 import { MorphoVaultFlow } from '../lib/constants';
-import { MorphoVaultStatsCard } from './MorphoVaultStatsCard';
+import { VaultStatsCard } from './VaultStatsCard';
 import { useConnection, useChainId } from 'wagmi';
 import { motion } from 'motion/react';
 import { positionAnimations } from '@/widgets/shared/animation/presets';
@@ -143,7 +143,7 @@ export const SupplyWithdraw = ({
           </TabsList>
         </motion.div>
 
-        <MorphoVaultStatsCard
+        <VaultStatsCard
           isLoading={isVaultDataLoading}
           vaultAddress={vaultAddress}
           vaultName={vaultName}
