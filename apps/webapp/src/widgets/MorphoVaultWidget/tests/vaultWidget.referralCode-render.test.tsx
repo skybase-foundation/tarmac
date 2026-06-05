@@ -17,8 +17,8 @@ const stubTxResult = {
   reset: () => {}
 };
 
-vi.mock('@/widgets/MorphoVaultWidget/hooks/useMorphoVaultTransactions', () => ({
-  useMorphoVaultTransactions: (params: Record<string, unknown>) => {
+vi.mock('@/widgets/MorphoVaultWidget/hooks/useVaultTransactions', () => ({
+  useVaultTransactions: (params: Record<string, unknown>) => {
     captured.params = params;
     return {
       morphoVaultDeposit: stubTxResult,
@@ -36,7 +36,7 @@ describe('VaultWidget referralCode render-layer parity', () => {
     captured.params = undefined;
   });
 
-  it('forwards provider="spark" and the REFERRAL_CODE constant to useMorphoVaultTransactions', async () => {
+  it('forwards provider="spark" and the REFERRAL_CODE constant to useVaultTransactions', async () => {
     render(
       <VaultWidget
         vaultAddress="0x74cb54e082411cfCAEADb00a0765625B10410DAa"

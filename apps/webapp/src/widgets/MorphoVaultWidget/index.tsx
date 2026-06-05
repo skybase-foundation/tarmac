@@ -39,7 +39,7 @@ import { CardAnimationWrapper } from '@/widgets/shared/animation/Wrappers';
 import { useNotifyWidgetState } from '@/widgets/shared/hooks/useNotifyWidgetState';
 import { MorphoVaultTransactionReview } from './components/MorphoVaultTransactionReview';
 import { withWidgetProvider } from '@/widgets/shared/hocs/withWidgetProvider';
-import { useMorphoVaultTransactions } from './hooks/useMorphoVaultTransactions';
+import { useVaultTransactions } from './hooks/useVaultTransactions';
 import { useConnectedContext } from '@/modules/ui/context/ConnectedContext';
 import { useConfigContext } from '@/modules/config/hooks/useConfigContext';
 import { useCustomConnectModal } from '@/modules/ui/hooks/useCustomConnectModal';
@@ -227,7 +227,7 @@ const VaultWidgetWrapped = ({
     !!batchEnabled && !!batchSupported && needsAllowance && widgetState.flow === MorphoVaultFlow.SUPPLY;
 
   // Transaction hooks
-  const { morphoVaultDeposit, morphoVaultWithdraw, morphoVaultRedeem } = useMorphoVaultTransactions({
+  const { morphoVaultDeposit, morphoVaultWithdraw, morphoVaultRedeem } = useVaultTransactions({
     amount: debouncedAmount,
     shares: vaultData?.userShares ?? 0n,
     max,
