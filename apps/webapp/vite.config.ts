@@ -83,7 +83,6 @@ export default ({ mode }: { mode: modeEnum }) => {
       https://api.cow.fi/
       https://api.morpho.org/
       https://api.spark.fi
-      https://api.merkl.xyz/
       https://api-v2.pendle.finance
       https://*.google-analytics.com
       https://*.analytics.google.com
