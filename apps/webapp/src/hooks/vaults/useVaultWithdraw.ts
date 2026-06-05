@@ -4,7 +4,7 @@ import { usdsRiskCapitalVaultAbi } from '../generated';
 import { useWriteContractFlow } from '../shared/useWriteContractFlow';
 
 /**
- * Hook for withdrawing assets from a Morpho vault (ERC-4626 compliant).
+ * Hook for withdrawing assets from an ERC-4626 vault.
  *
  * The withdraw function burns shares and returns the underlying assets to the receiver.
  * Per ERC-4626: withdraw(uint256 assets, address receiver, address owner) returns (uint256 shares)
@@ -13,7 +13,7 @@ import { useWriteContractFlow } from '../shared/useWriteContractFlow';
  * vault shares (which they already own) to receive the underlying assets.
  *
  * @param amount - The amount of underlying assets to withdraw (in asset decimals, e.g., 6 for USDC)
- * @param vaultAddress - The Morpho vault address to withdraw from (required)
+ * @param vaultAddress - The vault address to withdraw from (required)
  * @param enabled - Whether the hook is enabled
  * @param gas - Optional gas limit override
  * @param onMutate - Callback when transaction is initiated
@@ -21,7 +21,7 @@ import { useWriteContractFlow } from '../shared/useWriteContractFlow';
  * @param onSuccess - Callback when transaction is confirmed
  * @param onError - Callback when transaction fails
  */
-export function useMorphoVaultWithdraw({
+export function useVaultWithdraw({
   amount,
   vaultAddress,
   gas,

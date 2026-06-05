@@ -135,6 +135,7 @@ export type {
 // Provider-neutral vault core (Morpho + Spark)
 export {
   useVaultRedeem,
+  useVaultWithdraw,
   useErc4626VaultData,
   useVaultMarketData,
   useSparkVaultRate,
