@@ -8,7 +8,7 @@ import {
   OnAnalyticsEventCallback
 } from '@/widgets/shared/types/widgetState';
 import { VaultProvider } from '@/hooks/vaults/types';
-import { useMorphoVaultTransactionCallbacks } from './useMorphoVaultTransactionCallbacks';
+import { useVaultTransactionCallbacks } from './useVaultTransactionCallbacks';
 
 interface UseVaultTransactionsParameters extends Pick<WidgetProps, 'onWidgetStateChange'> {
   onNotification?: OnNotificationCallback;
@@ -67,7 +67,7 @@ export const useVaultTransactions = ({
 }: UseVaultTransactionsParameters) => {
   const { widgetState } = useContext(WidgetContext);
 
-  const { supplyTransactionCallbacks, withdrawTransactionCallbacks } = useMorphoVaultTransactionCallbacks({
+  const { supplyTransactionCallbacks, withdrawTransactionCallbacks } = useVaultTransactionCallbacks({
     amount,
     assetDecimals,
     assetSymbol,

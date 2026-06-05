@@ -12,7 +12,7 @@ import { WidgetAnalyticsEvent, WidgetAnalyticsEventType } from '@/widgets/shared
 import { useMemo, useRef } from 'react';
 import { MorphoVaultAction, MorphoVaultFlow } from '../lib/constants';
 
-interface UseMorphoVaultTransactionCallbacksParameters extends Pick<WidgetProps, 'onWidgetStateChange'> {
+interface UseVaultTransactionCallbacksParameters extends Pick<WidgetProps, 'onWidgetStateChange'> {
   onNotification?: OnNotificationCallback;
   onAnalyticsEvent?: OnAnalyticsEventCallback;
   amount: bigint;
@@ -20,7 +20,7 @@ interface UseMorphoVaultTransactionCallbacksParameters extends Pick<WidgetProps,
   assetDecimals: number;
   /** Symbol of the underlying asset token */
   assetSymbol: string;
-  /** The Morpho vault address */
+  /** The vault address */
   vaultAddress: `0x${string}`;
   /** The underlying asset address */
   assetAddress: `0x${string}`;
@@ -35,7 +35,7 @@ interface UseMorphoVaultTransactionCallbacksParameters extends Pick<WidgetProps,
   mutateAssetBalance: () => void;
 }
 
-export const useMorphoVaultTransactionCallbacks = ({
+export const useVaultTransactionCallbacks = ({
   amount,
   assetDecimals,
   assetSymbol,
@@ -50,7 +50,7 @@ export const useMorphoVaultTransactionCallbacks = ({
   onWidgetStateChange,
   onNotification,
   onAnalyticsEvent
-}: UseMorphoVaultTransactionCallbacksParameters) => {
+}: UseVaultTransactionCallbacksParameters) => {
   // Don't pass onAnalyticsEvent to the shared hook — we fire rich events directly below
   const { handleOnMutate, handleOnStart, handleOnSuccess, handleOnError } = useTransactionCallbacks({
     onWidgetStateChange,
