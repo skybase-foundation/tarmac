@@ -17,7 +17,7 @@ import { erc20Abi } from 'viem';
 import { MorphoRateBreakdownPopover, SparkVaultRate, VaultPoweredByBadge } from '@/widgets';
 import { Trans } from '@lingui/react/macro';
 
-type MorphoVaultStatsCardProps = {
+type VaultStatsCardProps = {
   vaultAddress: Record<number, `0x${string}`>;
   vaultName: string;
   assetToken: Token;
@@ -27,14 +27,14 @@ type MorphoVaultStatsCardProps = {
   disabled?: boolean;
 };
 
-export const MorphoVaultStatsCard = ({
+export const VaultStatsCard = ({
   vaultAddress,
   vaultName,
   assetToken,
   provider = 'morpho',
   onClick,
   disabled = false
-}: MorphoVaultStatsCardProps) => {
+}: VaultStatsCardProps) => {
   const chainId = useChainId();
   const assetDecimals = getTokenDecimals(assetToken, chainId);
 

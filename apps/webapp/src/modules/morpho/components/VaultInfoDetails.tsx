@@ -1,4 +1,4 @@
-import { MorphoVaultTvlCard } from './MorphoVaultTvlCard';
+import { VaultTvlCard } from './VaultTvlCard';
 import { MorphoMarketLiquidityCard } from './MorphoMarketLiquidityCard';
 import { Token, useErc4626VaultData, useVaultMarketData, VaultProvider } from '@/hooks';
 import { StatsCard } from '@/modules/ui/components/StatsCard';
@@ -7,18 +7,14 @@ import { Text } from '@/modules/layout/components/Typography';
 import { useChainId, useReadContract } from 'wagmi';
 import { erc20Abi } from 'viem';
 
-type MorphoVaultInfoDetailsProps = {
+type VaultInfoDetailsProps = {
   vaultAddress: `0x${string}`;
   assetToken: Token;
   /** Which provider operates the vault — drives the data source. Defaults to Morpho. */
   provider?: VaultProvider;
 };
 
-export function MorphoVaultInfoDetails({
-  vaultAddress,
-  assetToken,
-  provider = 'morpho'
-}: MorphoVaultInfoDetailsProps) {
+export function VaultInfoDetails({ vaultAddress, assetToken, provider = 'morpho' }: VaultInfoDetailsProps) {
   const isMorpho = provider === 'morpho';
   const chainId = useChainId();
 
@@ -58,7 +54,9 @@ export function MorphoVaultInfoDetails({
   // (a fork/testnet reflects its own state, where the API would report mainnet). It
   // also matches the in-widget card, which already reads on-chain. Fall back to the
   // API only if the on-chain read is unavailable.
-  const totalAssets = isMorpho ? marketData?.totalAssets : (onChainData?.totalAssets ?? marketData?.totalAssets);
+  const totalAssets = isMorpho
+    ? marketData?.totalAssets
+    : (onChainData?.totalAssets ?? marketData?.totalAssets);
   // Available liquidity: API vault-level figure (summed `liquidity[]`), falling
   // back to the on-chain vault buffer for Spark.
   const liquidity = marketData?.liquidity ?? onChainLiquidity;
@@ -78,7 +76,7 @@ export function MorphoVaultInfoDetails({
   return (
     <div className="flex w-full flex-wrap gap-3">
       <div className="min-w-[250px] flex-1">
-        <MorphoVaultTvlCard
+        <VaultTvlCard
           totalAssets={totalAssets}
           isLoading={tvlLoading}
           error={tvlError}

@@ -3,7 +3,7 @@ import { Chart, TimeFrame } from '@/modules/ui/components/Chart';
 import { useState, useMemo } from 'react';
 import { ErrorBoundary } from '@/modules/layout/components/ErrorBoundary';
 import { Trans } from '@lingui/react/macro';
-import { useParseMorphoVaultChartData } from '../hooks/useParseMorphoVaultChartData';
+import { useParseVaultChartData } from '../hooks/useParseVaultChartData';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useChainId } from 'wagmi';
 import { formatUnits } from 'viem';
@@ -61,12 +61,7 @@ export function MorphoVaultChart({ vaultAddress, assetToken, provider = 'morpho'
 
   const decimals =
     typeof assetToken.decimals === 'number' ? assetToken.decimals : assetToken.decimals[chainId];
-  const parsedChartData = useParseMorphoVaultChartData(
-    timeFrame,
-    chartInfo || [],
-    decimals,
-    useHourlyInterval
-  );
+  const parsedChartData = useParseVaultChartData(timeFrame, chartInfo || [], decimals, useHourlyInterval);
 
   const displayValue = useMemo(() => {
     if (!marketData) return undefined;

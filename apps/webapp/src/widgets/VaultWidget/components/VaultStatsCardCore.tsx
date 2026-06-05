@@ -9,7 +9,7 @@ import { SparkVaultRate } from './SparkVaultRate';
 import { VaultPoweredByBadge } from './MorphoVaultBadge';
 import type { VaultProvider } from '@/hooks';
 
-type MorphoVaultStatsCardCoreProps = {
+type VaultStatsCardCoreProps = {
   /** Display name for the vault */
   vaultName: string;
   /** Underlying asset symbol for the token icon */
@@ -22,13 +22,13 @@ type MorphoVaultStatsCardCoreProps = {
   content: JSX.Element;
 };
 
-export const MorphoVaultStatsCardCore = ({
+export const VaultStatsCardCore = ({
   vaultName,
   assetSymbol,
   vaultAddress,
   provider = 'morpho',
   content
-}: MorphoVaultStatsCardCoreProps) => {
+}: VaultStatsCardCoreProps) => {
   return (
     <StatsOverviewCardCore
       headerLeftContent={

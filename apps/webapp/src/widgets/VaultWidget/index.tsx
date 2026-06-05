@@ -12,11 +12,12 @@ import {
   type VaultProvider
 } from '@/hooks';
 import { useDebounce } from '@/hooks';
+import { REFERRAL_CODE } from '@/lib/constants';
 import { resolveSparkVaultRate } from '@/lib/vaults/sparkVaultRate';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { WidgetContainer } from '@/widgets/shared/components/ui/widget/WidgetContainer';
-import { MorphoVaultFlow, MorphoVaultAction, MorphoVaultScreen } from './lib/constants';
-import { MorphoVaultTransactionStatus } from './components/MorphoVaultTransactionStatus';
+import { VaultFlow, VaultAction, VaultScreen } from './lib/constants';
+import { VaultTransactionStatus } from './components/VaultTransactionStatus';
 import { SupplyWithdraw } from './components/SupplyWithdraw';
 import { WidgetContext } from '@/widgets/context/WidgetContext';
 import { NotificationType, TxStatus } from '@/widgets/shared/constants';
@@ -36,9 +37,9 @@ import { WidgetButtons } from '@/widgets/shared/components/ui/widget/WidgetButto
 import { AnimatePresence } from 'motion/react';
 import { CardAnimationWrapper } from '@/widgets/shared/animation/Wrappers';
 import { useNotifyWidgetState } from '@/widgets/shared/hooks/useNotifyWidgetState';
-import { MorphoVaultTransactionReview } from './components/MorphoVaultTransactionReview';
+import { VaultTransactionReview } from './components/VaultTransactionReview';
 import { withWidgetProvider } from '@/widgets/shared/hocs/withWidgetProvider';
-import { useMorphoVaultTransactions } from './hooks/useMorphoVaultTransactions';
+import { useVaultTransactions } from './hooks/useVaultTransactions';
 import { useConnectedContext } from '@/modules/ui/context/ConnectedContext';
 import { useConfigContext } from '@/modules/config/hooks/useConfigContext';
 import { useCustomConnectModal } from '@/modules/ui/hooks/useCustomConnectModal';
@@ -187,7 +188,7 @@ const VaultWidgetWrapped = ({
   const debouncedAmount = useDebounce(amount);
 
   // Tab state: 0 = Supply, 1 = Withdraw
-  const initialTabIndex = validatedExternalState?.flow === MorphoVaultFlow.WITHDRAW ? 1 : 0;
+  const initialTabIndex = validatedExternalState?.flow === VaultFlow.WITHDRAW ? 1 : 0;
   const [tabIndex, setTabIndex] = useState<0 | 1>(initialTabIndex);
 
   // Max withdrawal state - when true, use redeem instead of withdraw
@@ -223,13 +224,15 @@ const VaultWidgetWrapped = ({
   const isUsdt = assetAddress === usdtAddress[chainId as keyof typeof usdtAddress];
   const needsAllowanceReset = isUsdt && needsAllowance && !!allowance && allowance > 0n;
   const shouldUseBatch =
-    !!batchEnabled && !!batchSupported && needsAllowance && widgetState.flow === MorphoVaultFlow.SUPPLY;
+    !!batchEnabled && !!batchSupported && needsAllowance && widgetState.flow === VaultFlow.SUPPLY;
 
   // Transaction hooks
-  const { morphoVaultDeposit, morphoVaultWithdraw, morphoVaultRedeem } = useMorphoVaultTransactions({
+  const { morphoVaultDeposit, morphoVaultWithdraw, morphoVaultRedeem } = useVaultTransactions({
     amount: debouncedAmount,
     shares: vaultData?.userShares ?? 0n,
     max,
+    provider,
+    referralCode: REFERRAL_CODE,
     vaultAddress,
     assetAddress,
     assetDecimals,
@@ -246,28 +249,27 @@ const VaultWidgetWrapped = ({
   });
 
   // Derive current call index based on active flow (for multi-step tracking)
-  const currentCallIndex =
-    widgetState.flow === MorphoVaultFlow.SUPPLY ? morphoVaultDeposit.currentCallIndex : 0;
+  const currentCallIndex = widgetState.flow === VaultFlow.SUPPLY ? morphoVaultDeposit.currentCallIndex : 0;
 
   // Initialize widget state based on connection and tab
   useEffect(() => {
     if (isConnectedAndEnabled) {
       if (tabIndex === 0) {
         setWidgetState({
-          flow: MorphoVaultFlow.SUPPLY,
-          action: MorphoVaultAction.SUPPLY,
-          screen: MorphoVaultScreen.ACTION
+          flow: VaultFlow.SUPPLY,
+          action: VaultAction.SUPPLY,
+          screen: VaultScreen.ACTION
         });
       } else if (tabIndex === 1) {
         setWidgetState({
-          flow: MorphoVaultFlow.WITHDRAW,
-          action: MorphoVaultAction.WITHDRAW,
-          screen: MorphoVaultScreen.ACTION
+          flow: VaultFlow.WITHDRAW,
+          action: VaultAction.WITHDRAW,
+          screen: VaultScreen.ACTION
         });
       }
     } else {
       setWidgetState({
-        flow: tabIndex === 0 ? MorphoVaultFlow.SUPPLY : MorphoVaultFlow.WITHDRAW,
+        flow: tabIndex === 0 ? VaultFlow.SUPPLY : VaultFlow.WITHDRAW,
         action: null,
         screen: null
       });
@@ -276,10 +278,10 @@ const VaultWidgetWrapped = ({
 
   // Show step indicator for supply flows that need allowance (hide for claim flow)
   useEffect(() => {
-    if (widgetState.flow === MorphoVaultFlow.CLAIM) {
+    if (widgetState.flow === VaultFlow.CLAIM) {
       setShowStepIndicator(false);
     } else if (txStatus === TxStatus.IDLE) {
-      setShowStepIndicator(widgetState.flow === MorphoVaultFlow.SUPPLY && needsAllowance);
+      setShowStepIndicator(widgetState.flow === VaultFlow.SUPPLY && needsAllowance);
     }
   }, [txStatus, widgetState.flow, needsAllowance, setShowStepIndicator]);
 
@@ -352,8 +354,8 @@ const VaultWidgetWrapped = ({
 
     setWidgetState((prev: WidgetState) => ({
       ...prev,
-      action: prev.flow === MorphoVaultFlow.WITHDRAW ? MorphoVaultAction.WITHDRAW : MorphoVaultAction.SUPPLY,
-      screen: MorphoVaultScreen.ACTION
+      action: prev.flow === VaultFlow.WITHDRAW ? VaultAction.WITHDRAW : VaultAction.SUPPLY,
+      screen: VaultScreen.ACTION
     }));
 
     onWidgetStateChange?.({
@@ -366,7 +368,7 @@ const VaultWidgetWrapped = ({
   const reviewOnClick = () => {
     setWidgetState((prev: WidgetState) => ({
       ...prev,
-      screen: MorphoVaultScreen.REVIEW
+      screen: VaultScreen.REVIEW
     }));
 
     try {
@@ -393,14 +395,14 @@ const VaultWidgetWrapped = ({
     setTxStatus(TxStatus.IDLE);
     setWidgetState((prev: WidgetState) => ({
       ...prev,
-      screen: MorphoVaultScreen.ACTION
+      screen: VaultScreen.ACTION
     }));
   };
 
   const errorOnClick = () => {
-    if (widgetState.action === MorphoVaultAction.SUPPLY) {
+    if (widgetState.action === VaultAction.SUPPLY) {
       return morphoVaultDeposit.execute();
-    } else if (widgetState.action === MorphoVaultAction.WITHDRAW) {
+    } else if (widgetState.action === VaultAction.WITHDRAW) {
       return max ? morphoVaultRedeem.execute() : morphoVaultWithdraw.execute();
     }
     return undefined;
@@ -412,17 +414,17 @@ const VaultWidgetWrapped = ({
       ? nextOnClick
       : txStatus === TxStatus.ERROR
         ? errorOnClick
-        : widgetState.screen === MorphoVaultScreen.ACTION
+        : widgetState.screen === VaultScreen.ACTION
           ? reviewOnClick
-          : widgetState.flow === MorphoVaultFlow.SUPPLY
+          : widgetState.flow === VaultFlow.SUPPLY
             ? morphoVaultDeposit.execute
-            : widgetState.flow === MorphoVaultFlow.WITHDRAW
+            : widgetState.flow === VaultFlow.WITHDRAW
               ? max
                 ? morphoVaultRedeem.execute
                 : morphoVaultWithdraw.execute
               : undefined;
 
-  const showSecondaryButton = txStatus === TxStatus.ERROR || widgetState.screen === MorphoVaultScreen.REVIEW;
+  const showSecondaryButton = txStatus === TxStatus.ERROR || widgetState.screen === VaultScreen.REVIEW;
 
   // Notify on prepare errors
   useEffect(() => {
@@ -443,12 +445,12 @@ const VaultWidgetWrapped = ({
         setButtonText(t`Back to ${vaultName}`);
       } else if (txStatus === TxStatus.ERROR) {
         setButtonText(t`Retry`);
-      } else if (widgetState.screen === MorphoVaultScreen.ACTION && amount === 0n) {
+      } else if (widgetState.screen === VaultScreen.ACTION && amount === 0n) {
         setButtonText(t`Enter amount`);
-      } else if (widgetState.screen === MorphoVaultScreen.ACTION) {
+      } else if (widgetState.screen === VaultScreen.ACTION) {
         setButtonText(t`Review`);
-      } else if (widgetState.screen === MorphoVaultScreen.REVIEW) {
-        if (widgetState.flow === MorphoVaultFlow.WITHDRAW) {
+      } else if (widgetState.screen === VaultScreen.REVIEW) {
+        if (widgetState.flow === VaultFlow.WITHDRAW) {
           setButtonText(t`Confirm withdrawal`);
         } else if (shouldUseBatch) {
           setButtonText(t`Confirm bundled transaction`);
@@ -456,7 +458,7 @@ const VaultWidgetWrapped = ({
           setButtonText(t`Confirm 3 transactions`);
         } else if (needsAllowance) {
           setButtonText(t`Confirm 2 transactions`);
-        } else if (widgetState.flow === MorphoVaultFlow.SUPPLY) {
+        } else if (widgetState.flow === VaultFlow.SUPPLY) {
           setButtonText(t`Confirm supply`);
         }
       }
@@ -478,8 +480,8 @@ const VaultWidgetWrapped = ({
   // borrowing); it does not apply to the Spark vault, so only Morpho shows/enforces it.
   const shouldEnforceDisclaimer =
     provider === 'morpho' &&
-    widgetState.action === MorphoVaultAction.SUPPLY &&
-    widgetState.screen === MorphoVaultScreen.ACTION;
+    widgetState.action === VaultAction.SUPPLY &&
+    widgetState.screen === VaultScreen.ACTION;
   const isDisabledForDisclaimer = shouldEnforceDisclaimer && !disclaimerChecked;
 
   // Set widget button disabled state
@@ -487,8 +489,8 @@ const VaultWidgetWrapped = ({
     setIsDisabled(
       txStatus === TxStatus.IDLE &&
         isConnectedAndEnabled &&
-        ((widgetState.action === MorphoVaultAction.SUPPLY && (supplyDisabled || isDisabledForDisclaimer)) ||
-          (widgetState.action === MorphoVaultAction.WITHDRAW && withdrawDisabled))
+        ((widgetState.action === VaultAction.SUPPLY && (supplyDisabled || isDisabledForDisclaimer)) ||
+          (widgetState.action === VaultAction.WITHDRAW && withdrawDisabled))
     );
   }, [
     widgetState.action,
@@ -526,15 +528,15 @@ const VaultWidgetWrapped = ({
 
     if (tabIndex === 0) {
       setWidgetState({
-        flow: MorphoVaultFlow.SUPPLY,
-        action: MorphoVaultAction.SUPPLY,
-        screen: MorphoVaultScreen.ACTION
+        flow: VaultFlow.SUPPLY,
+        action: VaultAction.SUPPLY,
+        screen: VaultScreen.ACTION
       });
     } else {
       setWidgetState({
-        flow: MorphoVaultFlow.WITHDRAW,
-        action: MorphoVaultAction.WITHDRAW,
-        screen: MorphoVaultScreen.ACTION
+        flow: VaultFlow.WITHDRAW,
+        action: VaultAction.WITHDRAW,
+        screen: VaultScreen.ACTION
       });
     }
 
@@ -576,7 +578,7 @@ const VaultWidgetWrapped = ({
       <AnimatePresence mode="popLayout" initial={false}>
         {txStatus !== TxStatus.IDLE ? (
           <CardAnimationWrapper key="widget-transaction-status">
-            <MorphoVaultTransactionStatus
+            <VaultTransactionStatus
               assetToken={assetToken}
               amount={debouncedAmount}
               onExternalLinkClicked={onExternalLinkClicked}
@@ -586,9 +588,9 @@ const VaultWidgetWrapped = ({
               currentCallIndex={currentCallIndex}
             />
           </CardAnimationWrapper>
-        ) : widgetState.screen === MorphoVaultScreen.REVIEW ? (
+        ) : widgetState.screen === VaultScreen.REVIEW ? (
           <CardAnimationWrapper key="widget-transaction-review">
-            <MorphoVaultTransactionReview
+            <VaultTransactionReview
               batchEnabled={batchEnabled}
               setBatchEnabled={setBatchEnabled}
               isBatchTransaction={shouldUseBatch}
@@ -625,7 +627,7 @@ const VaultWidgetWrapped = ({
               onToggle={setTabIndex}
               amount={amount}
               error={
-                widgetState.flow === MorphoVaultFlow.SUPPLY
+                widgetState.flow === VaultFlow.SUPPLY
                   ? isSupplyBalanceError || isOverDepositCap
                   : isWithdrawBalanceError
               }
@@ -656,7 +658,7 @@ const VaultWidgetWrapped = ({
   );
 };
 
-export const VaultWidget = withWidgetProvider(VaultWidgetWrapped, 'MorphoVaultWidget');
+export const VaultWidget = withWidgetProvider(VaultWidgetWrapped, 'VaultWidget');
 
 /** @deprecated Use {@link VaultWidget}. Kept as a thin alias. */
 export const MorphoVaultWidget = VaultWidget;

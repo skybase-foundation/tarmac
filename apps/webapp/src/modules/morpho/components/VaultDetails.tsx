@@ -1,7 +1,7 @@
 import { MorphoVaultHistory } from './MorphoVaultHistory';
 import { SusdtVaultHistory } from './SusdtVaultHistory';
-import { MorphoVaultBalanceDetails } from './MorphoVaultBalanceDetails';
-import { MorphoVaultInfoDetails } from './MorphoVaultInfoDetails';
+import { VaultBalanceDetails } from './VaultBalanceDetails';
+import { VaultInfoDetails } from './VaultInfoDetails';
 import { MorphoVaultAllocationsDetails } from './MorphoVaultAllocationsDetails';
 import { MorphoVaultFaq } from './MorphoVaultFaq';
 import { t } from '@lingui/core/macro';
@@ -14,7 +14,7 @@ import { getVaultByAddress, Token, useVaultMarketData } from '@/hooks';
 import { AboutMorphoVaults } from '@/modules/ui/components/AboutMorphoVaults';
 import { useChainId } from 'wagmi';
 
-type MorphoVaultDetailsProps = {
+type VaultDetailsProps = {
   /** The Morpho vault contract address */
   vaultAddress: `0x${string}`;
   /** The underlying asset token */
@@ -23,11 +23,7 @@ type MorphoVaultDetailsProps = {
   vaultName: string;
 };
 
-export function MorphoVaultDetails({
-  vaultAddress,
-  assetToken,
-  vaultName
-}: MorphoVaultDetailsProps): React.ReactElement {
+export function VaultDetails({ vaultAddress, assetToken, vaultName }: VaultDetailsProps): React.ReactElement {
   const { isConnectedAndAcceptedTerms } = useConnectedContext();
   const chainId = useChainId();
 
@@ -61,17 +57,13 @@ export function MorphoVaultDetails({
       {isConnectedAndAcceptedTerms && (
         <DetailSection title={t`Your balances`} dataTestId="morpho-vault-stats-section">
           <DetailSectionRow>
-            <MorphoVaultBalanceDetails
-              vaultAddress={vaultAddress}
-              assetToken={assetToken}
-              provider={provider}
-            />
+            <VaultBalanceDetails vaultAddress={vaultAddress} assetToken={assetToken} provider={provider} />
           </DetailSectionRow>
         </DetailSection>
       )}
       <DetailSection title={t`${vaultName} info`}>
         <DetailSectionRow>
-          <MorphoVaultInfoDetails vaultAddress={vaultAddress} assetToken={assetToken} provider={provider} />
+          <VaultInfoDetails vaultAddress={vaultAddress} assetToken={assetToken} provider={provider} />
         </DetailSectionRow>
       </DetailSection>
       {showExposure && (

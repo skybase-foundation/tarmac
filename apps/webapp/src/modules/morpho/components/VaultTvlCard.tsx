@@ -6,7 +6,7 @@ import { Token } from '@/hooks';
 import { TokenIconWithBalance } from '@/modules/ui/components/TokenIconWithBalance';
 import { useChainId } from 'wagmi';
 
-type MorphoVaultTvlCardProps = {
+type VaultTvlCardProps = {
   /** Total assets held by the vault (TVL), in the asset's smallest unit. */
   totalAssets?: bigint;
   isLoading: boolean;
@@ -19,7 +19,7 @@ type MorphoVaultTvlCardProps = {
  * supplies `totalAssets` from the appropriate source (Morpho market API or
  * on-chain ERC-4626 `totalAssets`).
  */
-export function MorphoVaultTvlCard({ totalAssets, isLoading, error, assetToken }: MorphoVaultTvlCardProps) {
+export function VaultTvlCard({ totalAssets, isLoading, error, assetToken }: VaultTvlCardProps) {
   const { i18n } = useLingui();
   const chainId = useChainId();
 

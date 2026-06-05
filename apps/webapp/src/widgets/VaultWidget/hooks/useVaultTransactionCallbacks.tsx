@@ -10,9 +10,9 @@ import {
 } from '@/widgets/shared/types/widgetState';
 import { WidgetAnalyticsEvent, WidgetAnalyticsEventType } from '@/widgets/shared/types/analyticsEvents';
 import { useMemo, useRef } from 'react';
-import { MorphoVaultAction, MorphoVaultFlow } from '../lib/constants';
+import { VaultAction, VaultFlow } from '../lib/constants';
 
-interface UseMorphoVaultTransactionCallbacksParameters extends Pick<WidgetProps, 'onWidgetStateChange'> {
+interface UseVaultTransactionCallbacksParameters extends Pick<WidgetProps, 'onWidgetStateChange'> {
   onNotification?: OnNotificationCallback;
   onAnalyticsEvent?: OnAnalyticsEventCallback;
   amount: bigint;
@@ -20,7 +20,7 @@ interface UseMorphoVaultTransactionCallbacksParameters extends Pick<WidgetProps,
   assetDecimals: number;
   /** Symbol of the underlying asset token */
   assetSymbol: string;
-  /** The Morpho vault address */
+  /** The vault address */
   vaultAddress: `0x${string}`;
   /** The underlying asset address */
   assetAddress: `0x${string}`;
@@ -35,7 +35,7 @@ interface UseMorphoVaultTransactionCallbacksParameters extends Pick<WidgetProps,
   mutateAssetBalance: () => void;
 }
 
-export const useMorphoVaultTransactionCallbacks = ({
+export const useVaultTransactionCallbacks = ({
   amount,
   assetDecimals,
   assetSymbol,
@@ -50,7 +50,7 @@ export const useMorphoVaultTransactionCallbacks = ({
   onWidgetStateChange,
   onNotification,
   onAnalyticsEvent
-}: UseMorphoVaultTransactionCallbacksParameters) => {
+}: UseVaultTransactionCallbacksParameters) => {
   // Don't pass onAnalyticsEvent to the shared hook — we fire rich events directly below
   const { handleOnMutate, handleOnStart, handleOnSuccess, handleOnError } = useTransactionCallbacks({
     onWidgetStateChange,
@@ -92,8 +92,8 @@ export const useMorphoVaultTransactionCallbacks = ({
         handleOnMutate();
         fireAnalytics({
           event: WidgetAnalyticsEventType.TRANSACTION_STARTED,
-          action: isApproveStep ? MorphoVaultAction.APPROVE : MorphoVaultAction.SUPPLY,
-          flow: MorphoVaultFlow.SUPPLY,
+          action: isApproveStep ? VaultAction.APPROVE : VaultAction.SUPPLY,
+          flow: VaultFlow.SUPPLY,
           amount: formattedAmount,
           assetSymbol,
           data: vaultData
@@ -114,8 +114,8 @@ export const useMorphoVaultTransactionCallbacks = ({
         mutateVaultData();
         fireAnalytics({
           event: WidgetAnalyticsEventType.TRANSACTION_COMPLETED,
-          action: MorphoVaultAction.SUPPLY,
-          flow: MorphoVaultFlow.SUPPLY,
+          action: VaultAction.SUPPLY,
+          flow: VaultFlow.SUPPLY,
           txHash: hash,
           amount: formattedAmount,
           assetSymbol,
@@ -134,8 +134,8 @@ export const useMorphoVaultTransactionCallbacks = ({
         mutateVaultData();
         fireAnalytics({
           event: WidgetAnalyticsEventType.TRANSACTION_ERROR,
-          action: MorphoVaultAction.SUPPLY,
-          flow: MorphoVaultFlow.SUPPLY,
+          action: VaultAction.SUPPLY,
+          flow: VaultFlow.SUPPLY,
           txHash: hash,
           amount: formattedAmount,
           assetSymbol,
@@ -169,8 +169,8 @@ export const useMorphoVaultTransactionCallbacks = ({
         handleOnMutate();
         fireAnalytics({
           event: WidgetAnalyticsEventType.TRANSACTION_STARTED,
-          action: MorphoVaultAction.WITHDRAW,
-          flow: MorphoVaultFlow.WITHDRAW,
+          action: VaultAction.WITHDRAW,
+          flow: VaultFlow.WITHDRAW,
           amount: formattedAmount,
           assetSymbol,
           data: vaultData
@@ -189,8 +189,8 @@ export const useMorphoVaultTransactionCallbacks = ({
         mutateAssetBalance();
         fireAnalytics({
           event: WidgetAnalyticsEventType.TRANSACTION_COMPLETED,
-          action: MorphoVaultAction.WITHDRAW,
-          flow: MorphoVaultFlow.WITHDRAW,
+          action: VaultAction.WITHDRAW,
+          flow: VaultFlow.WITHDRAW,
           txHash: hash,
           amount: formattedAmount,
           assetSymbol,
@@ -207,8 +207,8 @@ export const useMorphoVaultTransactionCallbacks = ({
         mutateVaultData();
         fireAnalytics({
           event: WidgetAnalyticsEventType.TRANSACTION_ERROR,
-          action: MorphoVaultAction.WITHDRAW,
-          flow: MorphoVaultFlow.WITHDRAW,
+          action: VaultAction.WITHDRAW,
+          flow: VaultFlow.WITHDRAW,
           txHash: hash,
           amount: formattedAmount,
           assetSymbol,

@@ -10,7 +10,7 @@ import { QueryParams } from '@/lib/constants';
 import { vaultModuleForProvider, vaultsIntentForProvider } from '@/lib/vaults/vaultProviderMapping';
 import { VaultProvider } from '@/hooks/vaults/types';
 import { useSearchParams } from 'react-router-dom';
-import { MorphoVaultStatsCard } from '@/modules/expert/components/MorphoVaultStatsCard';
+import { VaultStatsCard } from '@/modules/expert/components/VaultStatsCard';
 import { VAULTS, useAllMorphoVaultsUserAssets } from '@/hooks';
 import { useChainId } from 'wagmi';
 import { useMemo } from 'react';
@@ -114,7 +114,7 @@ export function VaultsWidgetPane(sharedProps: SharedProps) {
                     const vaultAddressForChain = vault.vaultAddress[chainId];
                     if (!vaultAddressForChain) return null;
                     return (
-                      <MorphoVaultStatsCard
+                      <VaultStatsCard
                         key={vaultAddressForChain}
                         vaultAddress={vault.vaultAddress}
                         vaultName={vault.name}
@@ -135,7 +135,7 @@ export function VaultsWidgetPane(sharedProps: SharedProps) {
                     const vaultAddressForChain = vault.vaultAddress[chainId];
                     if (!vaultAddressForChain) return null;
                     return (
-                      <MorphoVaultStatsCard
+                      <VaultStatsCard
                         key={vaultAddressForChain}
                         vaultAddress={vault.vaultAddress}
                         vaultName={vault.name}

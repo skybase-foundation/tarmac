@@ -3,20 +3,20 @@ import { BatchStatus, TxStatus } from '@/widgets/shared/constants';
 import { TxCardCopyText } from '@/widgets/shared/types/txCardCopyText';
 import { MessageDescriptor } from '@lingui/core';
 
-export enum MorphoVaultFlow {
+export enum VaultFlow {
   SUPPLY = 'supply',
   WITHDRAW = 'withdraw',
   CLAIM = 'claim'
 }
 
-export enum MorphoVaultAction {
+export enum VaultAction {
   APPROVE = 'approve',
   SUPPLY = 'supply',
   WITHDRAW = 'withdraw',
   CLAIM = 'claim'
 }
 
-export enum MorphoVaultScreen {
+export enum VaultScreen {
   ACTION = 'action',
   REVIEW = 'review',
   TRANSACTION = 'transaction'
@@ -83,20 +83,17 @@ export function morphoVaultActionDescription({
   txStatus,
   needsAllowance
 }: {
-  flow: MorphoVaultFlow;
-  action: MorphoVaultAction;
+  flow: VaultFlow;
+  action: VaultAction;
   txStatus: TxStatus;
   needsAllowance: boolean;
 }): MessageDescriptor {
-  if (
-    (action === MorphoVaultAction.SUPPLY || action === MorphoVaultAction.WITHDRAW) &&
-    txStatus === TxStatus.SUCCESS
-  ) {
-    return msg`${flow === MorphoVaultFlow.SUPPLY ? 'Approved and supplied to' : 'Withdrawn from'} the Morpho Vault`;
+  if ((action === VaultAction.SUPPLY || action === VaultAction.WITHDRAW) && txStatus === TxStatus.SUCCESS) {
+    return msg`${flow === VaultFlow.SUPPLY ? 'Approved and supplied to' : 'Withdrawn from'} the Morpho Vault`;
   }
   return needsAllowance
-    ? msg`${flow === MorphoVaultFlow.SUPPLY ? 'Approving and supplying to' : 'Withdrawing from'} the Morpho Vault`
-    : msg`${flow === MorphoVaultFlow.SUPPLY ? 'Supplying to' : 'Withdrawing from'} the Morpho Vault`;
+    ? msg`${flow === VaultFlow.SUPPLY ? 'Approving and supplying to' : 'Withdrawing from'} the Morpho Vault`
+    : msg`${flow === VaultFlow.SUPPLY ? 'Supplying to' : 'Withdrawing from'} the Morpho Vault`;
 }
 
 // Transaction status subtitles
@@ -162,13 +159,13 @@ export function supplyLoadingButtonText({
   txStatus: TxStatus;
   amount: string;
   symbol: string;
-  action?: MorphoVaultAction;
+  action?: VaultAction;
 }): MessageDescriptor {
   switch (txStatus) {
     case TxStatus.INITIALIZED:
       return msg`Waiting for confirmation`;
     case TxStatus.LOADING:
-      return action === MorphoVaultAction.APPROVE
+      return action === VaultAction.APPROVE
         ? msg`Approving ${amount} ${symbol}`
         : msg`Transferring ${amount} ${symbol}`;
     default:

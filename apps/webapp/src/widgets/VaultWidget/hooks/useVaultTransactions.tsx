@@ -1,15 +1,16 @@
-import { useBatchMorphoVaultDeposit, useMorphoVaultWithdraw, useMorphoVaultRedeem } from '@/hooks';
+import { useBatchVaultDeposit, useVaultWithdraw, useVaultRedeem } from '@/hooks';
 import { WidgetContext } from '@/widgets/context/WidgetContext';
 import { useContext } from 'react';
-import { MorphoVaultAction, MorphoVaultFlow } from '../lib/constants';
+import { VaultAction, VaultFlow } from '../lib/constants';
 import {
   WidgetProps,
   OnNotificationCallback,
   OnAnalyticsEventCallback
 } from '@/widgets/shared/types/widgetState';
-import { useMorphoVaultTransactionCallbacks } from './useMorphoVaultTransactionCallbacks';
+import { VaultProvider } from '@/hooks/vaults/types';
+import { useVaultTransactionCallbacks } from './useVaultTransactionCallbacks';
 
-interface UseMorphoVaultTransactionsParameters extends Pick<WidgetProps, 'onWidgetStateChange'> {
+interface UseVaultTransactionsParameters extends Pick<WidgetProps, 'onWidgetStateChange'> {
   onNotification?: OnNotificationCallback;
   onAnalyticsEvent?: OnAnalyticsEventCallback;
   /** Amount of underlying assets to deposit/withdraw */
@@ -18,7 +19,11 @@ interface UseMorphoVaultTransactionsParameters extends Pick<WidgetProps, 'onWidg
   shares: bigint;
   /** Whether to use redeem instead of withdraw (for max withdrawals) */
   max: boolean;
-  /** The Morpho vault address */
+  /** Which provider operates the vault — only Spark attaches the on-chain referral code */
+  provider: VaultProvider;
+  /** Referral code to attribute Spark deposits to (ignored for Morpho) */
+  referralCode: number;
+  /** The vault address */
   vaultAddress: `0x${string}`;
   /** The underlying asset address (e.g., USDC) */
   assetAddress: `0x${string}`;
@@ -40,10 +45,12 @@ interface UseMorphoVaultTransactionsParameters extends Pick<WidgetProps, 'onWidg
   mutateAssetBalance: () => void;
 }
 
-export const useMorphoVaultTransactions = ({
+export const useVaultTransactions = ({
   amount,
   shares,
   max,
+  provider,
+  referralCode,
   vaultAddress,
   assetAddress,
   assetDecimals,
@@ -57,10 +64,10 @@ export const useMorphoVaultTransactions = ({
   onWidgetStateChange,
   onNotification,
   onAnalyticsEvent
-}: UseMorphoVaultTransactionsParameters) => {
+}: UseVaultTransactionsParameters) => {
   const { widgetState } = useContext(WidgetContext);
 
-  const { supplyTransactionCallbacks, withdrawTransactionCallbacks } = useMorphoVaultTransactionCallbacks({
+  const { supplyTransactionCallbacks, withdrawTransactionCallbacks } = useVaultTransactionCallbacks({
     amount,
     assetDecimals,
     assetSymbol,
@@ -78,30 +85,32 @@ export const useMorphoVaultTransactions = ({
   });
 
   // Deposit hook (with batch approval support)
-  const morphoVaultDeposit = useBatchMorphoVaultDeposit({
+  const morphoVaultDeposit = useBatchVaultDeposit({
     amount,
     vaultAddress,
     assetAddress,
+    provider,
+    referral: referralCode,
     shouldUseBatch,
     enabled:
-      widgetState.flow === MorphoVaultFlow.SUPPLY &&
-      (widgetState.action === MorphoVaultAction.SUPPLY || widgetState.action === MorphoVaultAction.APPROVE),
+      widgetState.flow === VaultFlow.SUPPLY &&
+      (widgetState.action === VaultAction.SUPPLY || widgetState.action === VaultAction.APPROVE),
     ...supplyTransactionCallbacks
   });
 
   // Withdraw hook (for partial withdrawals)
-  const morphoVaultWithdraw = useMorphoVaultWithdraw({
+  const morphoVaultWithdraw = useVaultWithdraw({
     amount,
     vaultAddress,
-    enabled: widgetState.action === MorphoVaultAction.WITHDRAW && !max,
+    enabled: widgetState.action === VaultAction.WITHDRAW && !max,
     ...withdrawTransactionCallbacks
   });
 
   // Redeem hook (for max withdrawals to avoid dust)
-  const morphoVaultRedeem = useMorphoVaultRedeem({
+  const morphoVaultRedeem = useVaultRedeem({
     shares,
     vaultAddress,
-    enabled: widgetState.action === MorphoVaultAction.WITHDRAW && max,
+    enabled: widgetState.action === VaultAction.WITHDRAW && max,
     ...withdrawTransactionCallbacks
   });
 
