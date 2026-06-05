@@ -4,11 +4,11 @@ import { useLingui } from '@lingui/react';
 import { useMorphoVaultMarketApiData } from '@/hooks';
 import { MorphoRateBreakdownPopover } from '@/widgets';
 
-type MorphoVaultRateCardProps = {
+type VaultRateCardProps = {
   vaultAddress: `0x${string}`;
 };
 
-export function MorphoVaultRateCard({ vaultAddress }: MorphoVaultRateCardProps) {
+export function VaultRateCard({ vaultAddress }: VaultRateCardProps) {
   const { i18n } = useLingui();
   const { isLoading } = useMorphoVaultMarketApiData({ vaultAddress });
 

@@ -1,4 +1,4 @@
-import { MorphoVaultTvlCard } from './MorphoVaultTvlCard';
+import { VaultTvlCard } from './VaultTvlCard';
 import { MorphoMarketLiquidityCard } from './MorphoMarketLiquidityCard';
 import { Token, useErc4626VaultData, useVaultMarketData, VaultProvider } from '@/hooks';
 import { StatsCard } from '@/modules/ui/components/StatsCard';
@@ -7,18 +7,18 @@ import { Text } from '@/modules/layout/components/Typography';
 import { useChainId, useReadContract } from 'wagmi';
 import { erc20Abi } from 'viem';
 
-type MorphoVaultInfoDetailsProps = {
+type VaultInfoDetailsProps = {
   vaultAddress: `0x${string}`;
   assetToken: Token;
   /** Which provider operates the vault — drives the data source. Defaults to Morpho. */
   provider?: VaultProvider;
 };
 
-export function MorphoVaultInfoDetails({
+export function VaultInfoDetails({
   vaultAddress,
   assetToken,
   provider = 'morpho'
-}: MorphoVaultInfoDetailsProps) {
+}: VaultInfoDetailsProps) {
   const isMorpho = provider === 'morpho';
   const chainId = useChainId();
 
@@ -78,7 +78,7 @@ export function MorphoVaultInfoDetails({
   return (
     <div className="flex w-full flex-wrap gap-3">
       <div className="min-w-[250px] flex-1">
-        <MorphoVaultTvlCard
+        <VaultTvlCard
           totalAssets={totalAssets}
           isLoading={tvlLoading}
           error={tvlError}

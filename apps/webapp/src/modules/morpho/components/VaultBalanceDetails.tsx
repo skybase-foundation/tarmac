@@ -5,17 +5,17 @@ import { t } from '@lingui/core/macro';
 import { useChainId, useConnection } from 'wagmi';
 import { MorphoVaultRewardsDetails } from './MorphoVaultRewardsDetails';
 
-type MorphoVaultBalanceDetailsProps = {
+type VaultBalanceDetailsProps = {
   vaultAddress: `0x${string}`;
   assetToken: Token;
   provider?: VaultProvider;
 };
 
-export function MorphoVaultBalanceDetails({
+export function VaultBalanceDetails({
   vaultAddress,
   assetToken,
   provider = 'morpho'
-}: MorphoVaultBalanceDetailsProps) {
+}: VaultBalanceDetailsProps) {
   const chainId = useChainId();
   const { address } = useConnection();
   const {

@@ -48,10 +48,10 @@ vi.mock('wagmi', async importActual => {
   };
 });
 
-import { MorphoVaultInfoDetails } from './MorphoVaultInfoDetails';
+import { VaultInfoDetails } from './VaultInfoDetails';
 import { TOKENS } from '@/hooks';
 
-describe('MorphoVaultInfoDetails (Spark API-first, on-chain fallback)', () => {
+describe('VaultInfoDetails (Spark API-first, on-chain fallback)', () => {
   it('uses the API tvl + summed liquidity for a Spark vault when present', async () => {
     // API present: its tvl and summed liquidity win over BOTH on-chain figures —
     // and over the per-user maxWithdraw, which is never the "Available liquidity" stat.
@@ -73,7 +73,7 @@ describe('MorphoVaultInfoDetails (Spark API-first, on-chain fallback)', () => {
     };
     mockOnChainLiquidity = { data: 101_000_000_000_000n, isLoading: false }; // 101M buffer (must be ignored)
 
-    render(<MorphoVaultInfoDetails vaultAddress={VAULT} assetToken={TOKENS.usdt} provider="spark" />, {
+    render(<VaultInfoDetails vaultAddress={VAULT} assetToken={TOKENS.usdt} provider="spark" />, {
       wrapper: WagmiWrapper
     });
 
@@ -100,7 +100,7 @@ describe('MorphoVaultInfoDetails (Spark API-first, on-chain fallback)', () => {
     };
     mockOnChainLiquidity = { data: 80_000_000_000_000n, isLoading: false }; // 80M vault buffer
 
-    render(<MorphoVaultInfoDetails vaultAddress={VAULT} assetToken={TOKENS.usdt} provider="spark" />, {
+    render(<VaultInfoDetails vaultAddress={VAULT} assetToken={TOKENS.usdt} provider="spark" />, {
       wrapper: WagmiWrapper
     });
 
@@ -125,7 +125,7 @@ describe('MorphoVaultInfoDetails (Spark API-first, on-chain fallback)', () => {
       error: null
     };
 
-    render(<MorphoVaultInfoDetails vaultAddress={VAULT} assetToken={TOKENS.usdt} provider="morpho" />, {
+    render(<VaultInfoDetails vaultAddress={VAULT} assetToken={TOKENS.usdt} provider="morpho" />, {
       wrapper: WagmiWrapper
     });
 
