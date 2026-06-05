@@ -27,6 +27,7 @@ export { useSparkVaultRate } from './spark/useSparkVaultRate';
 export { useSparkVaultResolvedRate } from './spark/useSparkVaultResolvedRate';
 export { useVaultRatesByAddress, type VaultRatesByAddressHook } from './useVaultRatesByAddress';
 export { computeVaultLimits, type VaultLimits, type VaultLimitsInput } from './computeVaultLimits';
+export { useVaultRedeem } from './useVaultRedeem';
 export {
   useVaultMarketData,
   type UseVaultMarketDataParams,

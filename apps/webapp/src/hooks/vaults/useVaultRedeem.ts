@@ -4,7 +4,7 @@ import { usdsRiskCapitalVaultAbi } from '../generated';
 import { useWriteContractFlow } from '../shared/useWriteContractFlow';
 
 /**
- * Hook for redeeming shares from a Morpho vault (ERC-4626 compliant).
+ * Hook for redeeming shares from an ERC-4626 vault.
  *
  * The redeem function burns a specific amount of shares and returns the underlying assets.
  * Per ERC-4626: redeem(uint256 shares, address receiver, address owner) returns (uint256 assets)
@@ -17,7 +17,7 @@ import { useWriteContractFlow } from '../shared/useWriteContractFlow';
  * vault shares (which they already own) to receive the underlying assets.
  *
  * @param shares - The amount of vault shares to redeem (in vault share decimals)
- * @param vaultAddress - The Morpho vault address to redeem from (required)
+ * @param vaultAddress - The vault address to redeem from (required)
  * @param enabled - Whether the hook is enabled
  * @param gas - Optional gas limit override
  * @param onMutate - Callback when transaction is initiated
@@ -25,7 +25,7 @@ import { useWriteContractFlow } from '../shared/useWriteContractFlow';
  * @param onSuccess - Callback when transaction is confirmed
  * @param onError - Callback when transaction fails
  */
-export function useMorphoVaultRedeem({
+export function useVaultRedeem({
   shares,
   vaultAddress,
   gas,

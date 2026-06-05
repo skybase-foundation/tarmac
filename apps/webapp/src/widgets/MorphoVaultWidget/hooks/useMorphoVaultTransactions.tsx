@@ -1,4 +1,4 @@
-import { useBatchMorphoVaultDeposit, useMorphoVaultWithdraw, useMorphoVaultRedeem } from '@/hooks';
+import { useBatchMorphoVaultDeposit, useMorphoVaultWithdraw, useVaultRedeem } from '@/hooks';
 import { WidgetContext } from '@/widgets/context/WidgetContext';
 import { useContext } from 'react';
 import { MorphoVaultAction, MorphoVaultFlow } from '../lib/constants';
@@ -107,7 +107,7 @@ export const useMorphoVaultTransactions = ({
   });
 
   // Redeem hook (for max withdrawals to avoid dust)
-  const morphoVaultRedeem = useMorphoVaultRedeem({
+  const morphoVaultRedeem = useVaultRedeem({
     shares,
     vaultAddress,
     enabled: widgetState.action === MorphoVaultAction.WITHDRAW && max,
