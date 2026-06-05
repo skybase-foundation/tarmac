@@ -22,11 +22,7 @@ type VaultDetailsProps = {
   vaultName: string;
 };
 
-export function VaultDetails({
-  vaultAddress,
-  assetToken,
-  vaultName
-}: VaultDetailsProps): React.ReactElement {
+export function VaultDetails({ vaultAddress, assetToken, vaultName }: VaultDetailsProps): React.ReactElement {
   const { isConnectedAndAcceptedTerms } = useConnectedContext();
   const chainId = useChainId();
 
@@ -60,11 +56,7 @@ export function VaultDetails({
       {isConnectedAndAcceptedTerms && (
         <DetailSection title={t`Your balances`} dataTestId="morpho-vault-stats-section">
           <DetailSectionRow>
-            <VaultBalanceDetails
-              vaultAddress={vaultAddress}
-              assetToken={assetToken}
-              provider={provider}
-            />
+            <VaultBalanceDetails vaultAddress={vaultAddress} assetToken={assetToken} provider={provider} />
           </DetailSectionRow>
         </DetailSection>
       )}

@@ -88,10 +88,7 @@ export function morphoVaultActionDescription({
   txStatus: TxStatus;
   needsAllowance: boolean;
 }): MessageDescriptor {
-  if (
-    (action === VaultAction.SUPPLY || action === VaultAction.WITHDRAW) &&
-    txStatus === TxStatus.SUCCESS
-  ) {
+  if ((action === VaultAction.SUPPLY || action === VaultAction.WITHDRAW) && txStatus === TxStatus.SUCCESS) {
     return msg`${flow === VaultFlow.SUPPLY ? 'Approved and supplied to' : 'Withdrawn from'} the Morpho Vault`;
   }
   return needsAllowance

@@ -1,10 +1,4 @@
-import {
-  MorphoVaultWidget,
-  TxStatus,
-  WidgetStateChangeParams,
-  VaultFlow,
-  VaultAction
-} from '@/widgets';
+import { MorphoVaultWidget, TxStatus, WidgetStateChangeParams, VaultFlow, VaultAction } from '@/widgets';
 import { Token, type VaultProvider } from '@/hooks';
 import { QueryParams } from '@/lib/constants';
 import { SharedProps } from '@/modules/app/types/Widgets';

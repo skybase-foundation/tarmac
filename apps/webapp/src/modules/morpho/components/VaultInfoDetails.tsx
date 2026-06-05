@@ -14,11 +14,7 @@ type VaultInfoDetailsProps = {
   provider?: VaultProvider;
 };
 
-export function VaultInfoDetails({
-  vaultAddress,
-  assetToken,
-  provider = 'morpho'
-}: VaultInfoDetailsProps) {
+export function VaultInfoDetails({ vaultAddress, assetToken, provider = 'morpho' }: VaultInfoDetailsProps) {
   const isMorpho = provider === 'morpho';
   const chainId = useChainId();
 
@@ -58,7 +54,9 @@ export function VaultInfoDetails({
   // (a fork/testnet reflects its own state, where the API would report mainnet). It
   // also matches the in-widget card, which already reads on-chain. Fall back to the
   // API only if the on-chain read is unavailable.
-  const totalAssets = isMorpho ? marketData?.totalAssets : (onChainData?.totalAssets ?? marketData?.totalAssets);
+  const totalAssets = isMorpho
+    ? marketData?.totalAssets
+    : (onChainData?.totalAssets ?? marketData?.totalAssets);
   // Available liquidity: API vault-level figure (summed `liquidity[]`), falling
   // back to the on-chain vault buffer for Spark.
   const liquidity = marketData?.liquidity ?? onChainLiquidity;

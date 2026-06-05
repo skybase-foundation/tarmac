@@ -249,8 +249,7 @@ const VaultWidgetWrapped = ({
   });
 
   // Derive current call index based on active flow (for multi-step tracking)
-  const currentCallIndex =
-    widgetState.flow === VaultFlow.SUPPLY ? morphoVaultDeposit.currentCallIndex : 0;
+  const currentCallIndex = widgetState.flow === VaultFlow.SUPPLY ? morphoVaultDeposit.currentCallIndex : 0;
 
   // Initialize widget state based on connection and tab
   useEffect(() => {

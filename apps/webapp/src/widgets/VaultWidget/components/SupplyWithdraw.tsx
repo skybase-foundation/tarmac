@@ -120,14 +120,10 @@ export const SupplyWithdraw = ({
 
   // Calculate final balances after transaction
   const finalAssetBalance =
-    widgetState.flow === VaultFlow.SUPPLY
-      ? (assetBalance || 0n) - amount
-      : (assetBalance || 0n) + amount;
+    widgetState.flow === VaultFlow.SUPPLY ? (assetBalance || 0n) - amount : (assetBalance || 0n) + amount;
 
   const finalVaultBalance =
-    widgetState.flow === VaultFlow.SUPPLY
-      ? (vaultBalance || 0n) + amount
-      : (vaultBalance || 0n) - amount;
+    widgetState.flow === VaultFlow.SUPPLY ? (vaultBalance || 0n) + amount : (vaultBalance || 0n) - amount;
 
   return (
     <MotionVStack gap={0} className="w-full" variants={positionAnimations}>

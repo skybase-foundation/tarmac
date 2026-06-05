@@ -61,12 +61,7 @@ export function MorphoVaultChart({ vaultAddress, assetToken, provider = 'morpho'
 
   const decimals =
     typeof assetToken.decimals === 'number' ? assetToken.decimals : assetToken.decimals[chainId];
-  const parsedChartData = useParseVaultChartData(
-    timeFrame,
-    chartInfo || [],
-    decimals,
-    useHourlyInterval
-  );
+  const parsedChartData = useParseVaultChartData(timeFrame, chartInfo || [], decimals, useHourlyInterval);
 
   const displayValue = useMemo(() => {
     if (!marketData) return undefined;
