@@ -25,7 +25,7 @@ export type NormalizedVaultAllocation = {
  *
  * Field names/units intentionally match the Morpho chart point
  * (`MorphoVaultChartDataPoint`) so the shared parse hook
- * (`useParseMorphoVaultChartData`) and `Chart` component consume either
+ * (`useParseVaultChartData`) and `Chart` component consume either
  * provider's series untouched.
  */
 export type NormalizedVaultHistoryPoint = {
