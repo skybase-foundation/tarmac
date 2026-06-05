@@ -24,7 +24,7 @@ import { TxStatus } from '@/widgets/shared/constants';
 import { motion } from 'motion/react';
 import { positionAnimations } from '@/widgets/shared/animation/presets';
 
-export const MorphoVaultTransactionStatus = ({
+export const VaultTransactionStatus = ({
   assetToken,
   amount,
   onExternalLinkClicked,

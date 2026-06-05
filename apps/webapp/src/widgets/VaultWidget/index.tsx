@@ -17,7 +17,7 @@ import { resolveSparkVaultRate } from '@/lib/vaults/sparkVaultRate';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { WidgetContainer } from '@/widgets/shared/components/ui/widget/WidgetContainer';
 import { MorphoVaultFlow, MorphoVaultAction, MorphoVaultScreen } from './lib/constants';
-import { MorphoVaultTransactionStatus } from './components/MorphoVaultTransactionStatus';
+import { VaultTransactionStatus } from './components/VaultTransactionStatus';
 import { SupplyWithdraw } from './components/SupplyWithdraw';
 import { WidgetContext } from '@/widgets/context/WidgetContext';
 import { NotificationType, TxStatus } from '@/widgets/shared/constants';
@@ -37,7 +37,7 @@ import { WidgetButtons } from '@/widgets/shared/components/ui/widget/WidgetButto
 import { AnimatePresence } from 'motion/react';
 import { CardAnimationWrapper } from '@/widgets/shared/animation/Wrappers';
 import { useNotifyWidgetState } from '@/widgets/shared/hooks/useNotifyWidgetState';
-import { MorphoVaultTransactionReview } from './components/MorphoVaultTransactionReview';
+import { VaultTransactionReview } from './components/VaultTransactionReview';
 import { withWidgetProvider } from '@/widgets/shared/hocs/withWidgetProvider';
 import { useVaultTransactions } from './hooks/useVaultTransactions';
 import { useConnectedContext } from '@/modules/ui/context/ConnectedContext';
@@ -579,7 +579,7 @@ const VaultWidgetWrapped = ({
       <AnimatePresence mode="popLayout" initial={false}>
         {txStatus !== TxStatus.IDLE ? (
           <CardAnimationWrapper key="widget-transaction-status">
-            <MorphoVaultTransactionStatus
+            <VaultTransactionStatus
               assetToken={assetToken}
               amount={debouncedAmount}
               onExternalLinkClicked={onExternalLinkClicked}
@@ -591,7 +591,7 @@ const VaultWidgetWrapped = ({
           </CardAnimationWrapper>
         ) : widgetState.screen === MorphoVaultScreen.REVIEW ? (
           <CardAnimationWrapper key="widget-transaction-review">
-            <MorphoVaultTransactionReview
+            <VaultTransactionReview
               batchEnabled={batchEnabled}
               setBatchEnabled={setBatchEnabled}
               isBatchTransaction={shouldUseBatch}

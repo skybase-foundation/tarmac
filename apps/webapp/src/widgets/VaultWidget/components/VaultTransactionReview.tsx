@@ -17,7 +17,7 @@ import {
 } from '../lib/constants';
 import { useContext, useEffect } from 'react';
 
-export const MorphoVaultTransactionReview = ({
+export const VaultTransactionReview = ({
   batchEnabled,
   setBatchEnabled,
   isBatchTransaction,
