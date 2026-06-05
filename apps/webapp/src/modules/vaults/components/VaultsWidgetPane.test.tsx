@@ -79,8 +79,8 @@ vi.mock('@/modules/morpho/components/MorphoVaultWidgetPane', () => ({
 
 // Render each vault card as a button labelled by its name so the test can click it
 // and assert the resulting search params — not the click internals.
-vi.mock('@/modules/expert/components/MorphoVaultStatsCard', () => ({
-  MorphoVaultStatsCard: ({ vaultName, onClick }: { vaultName: string; onClick?: () => void }) => (
+vi.mock('@/modules/expert/components/VaultStatsCard', () => ({
+  VaultStatsCard: ({ vaultName, onClick }: { vaultName: string; onClick?: () => void }) => (
     <button onClick={onClick} type="button">
       {vaultName}
     </button>
