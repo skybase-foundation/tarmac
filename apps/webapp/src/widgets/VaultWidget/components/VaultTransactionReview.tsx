@@ -11,13 +11,13 @@ import {
   getMorphoVaultSupplyReviewSubtitle,
   getMorphoVaultWithdrawReviewSubtitle,
   morphoVaultActionDescription,
-  MorphoVaultFlow,
+  VaultFlow,
   morphoVaultSupplyReviewTitle,
   morphoVaultWithdrawReviewTitle
 } from '../lib/constants';
 import { useContext, useEffect } from 'react';
 
-export const MorphoVaultTransactionReview = ({
+export const VaultTransactionReview = ({
   batchEnabled,
   setBatchEnabled,
   isBatchTransaction,
@@ -56,7 +56,7 @@ export const MorphoVaultTransactionReview = ({
 
   // Sets the title and subtitle of the card
   useEffect(() => {
-    if (flow === MorphoVaultFlow.SUPPLY) {
+    if (flow === VaultFlow.SUPPLY) {
       setStepTwoTitle(t`Supply`);
       setTxTitle(i18n._(morphoVaultSupplyReviewTitle));
       setTxSubtitle(
@@ -68,7 +68,7 @@ export const MorphoVaultTransactionReview = ({
           })
         )
       );
-    } else if (flow === MorphoVaultFlow.WITHDRAW) {
+    } else if (flow === VaultFlow.WITHDRAW) {
       setStepTwoTitle(t`Withdraw`);
       setTxTitle(i18n._(morphoVaultWithdrawReviewTitle));
       setTxSubtitle(

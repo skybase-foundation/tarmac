@@ -4,12 +4,12 @@ import { usdtAbi, usdtAddress } from '../generated';
 import { getWriteContractCall } from '../shared/getWriteContractCall';
 import { useTransactionFlow } from '../shared/useTransactionFlow';
 import { useTokenAllowance } from '../tokens/useTokenAllowance';
-import { VaultProvider } from '../vaults/types';
+import { VaultProvider } from './types';
 import { buildVaultDepositCall } from '@/lib/vaults/buildVaultDepositCall';
 import { Call, erc20Abi } from 'viem';
 
 /**
- * Hook for depositing assets into a Morpho vault (ERC-4626 compliant) with batch transaction support.
+ * Hook for depositing assets into an ERC-4626 vault with batch transaction support.
  *
  * The deposit function converts assets to shares and transfers them to the receiver.
  * Per ERC-4626: deposit(uint256 assets, address receiver) returns (uint256 shares)
@@ -18,7 +18,7 @@ import { Call, erc20Abi } from 'viem';
  * the wallet supports EIP-5792, otherwise executes them sequentially.
  *
  * @param amount - The amount of underlying assets to deposit (in asset decimals, e.g., 6 for USDC)
- * @param vaultAddress - The Morpho vault address to deposit into (required)
+ * @param vaultAddress - The vault address to deposit into (required)
  * @param assetAddress - The underlying asset token address (e.g., USDC) for approval (required)
  * @param enabled - Whether the hook is enabled
  * @param shouldUseBatch - Whether to use batch transactions when supported (default: true)
@@ -27,7 +27,7 @@ import { Call, erc20Abi } from 'viem';
  * @param onSuccess - Callback when transaction is confirmed
  * @param onError - Callback when transaction fails
  */
-export function useBatchMorphoVaultDeposit({
+export function useBatchVaultDeposit({
   amount,
   vaultAddress,
   assetAddress,

@@ -1,8 +1,8 @@
 import { useContext, useEffect, useState } from 'react';
 import {
-  MorphoVaultFlow,
-  MorphoVaultAction,
-  MorphoVaultScreen,
+  VaultFlow,
+  VaultAction,
+  VaultScreen,
   supplySubtitle,
   withdrawSubtitle,
   morphoVaultActionDescription,
@@ -24,7 +24,7 @@ import { TxStatus } from '@/widgets/shared/constants';
 import { motion } from 'motion/react';
 import { positionAnimations } from '@/widgets/shared/animation/presets';
 
-export const MorphoVaultTransactionStatus = ({
+export const VaultTransactionStatus = ({
   assetToken,
   amount,
   onExternalLinkClicked,
@@ -73,17 +73,17 @@ export const MorphoVaultTransactionStatus = ({
   useEffect(() => {
     const isWaitingForSecondTransaction =
       txStatus === TxStatus.INITIALIZED &&
-      action !== MorphoVaultAction.APPROVE &&
+      action !== VaultAction.APPROVE &&
       flowNeedsAllowance &&
       !isBatchTransaction;
     const flowTxStatus: TxStatus = isWaitingForSecondTransaction ? TxStatus.LOADING : txStatus;
 
     const formattedAmount = formatBigInt(amount, { unit: getTokenDecimals(assetToken, chainId) });
 
-    if (flow === MorphoVaultFlow.SUPPLY) {
+    if (flow === VaultFlow.SUPPLY) {
       setStepTwoTitle(t`Supply`);
 
-      if (screen === MorphoVaultScreen.TRANSACTION) {
+      if (screen === VaultScreen.TRANSACTION) {
         setTxTitle(i18n._(morphoVaultSupplyTitle[flowTxStatus as keyof TxCardCopyText]));
         setTxSubtitle(
           i18n._(
@@ -131,10 +131,10 @@ export const MorphoVaultTransactionStatus = ({
           setStep(totalSteps);
         }
       }
-    } else if (flow === MorphoVaultFlow.WITHDRAW) {
+    } else if (flow === VaultFlow.WITHDRAW) {
       setStepTwoTitle(t`Withdraw`);
 
-      if (screen === MorphoVaultScreen.TRANSACTION) {
+      if (screen === VaultScreen.TRANSACTION) {
         setTxTitle(i18n._(morphoVaultWithdrawTitle[flowTxStatus as keyof TxCardCopyText]));
         setTxSubtitle(
           i18n._(

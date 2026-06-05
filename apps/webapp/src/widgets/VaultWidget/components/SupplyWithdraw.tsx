@@ -7,8 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/widgets/components/u
 import { TransactionOverview } from '@/widgets/shared/components/ui/transaction/TransactionOverview';
 import { useContext, useMemo } from 'react';
 import { WidgetContext } from '@/widgets/context/WidgetContext';
-import { MorphoVaultFlow } from '../lib/constants';
-import { MorphoVaultStatsCard } from './MorphoVaultStatsCard';
+import { VaultFlow } from '../lib/constants';
+import { VaultStatsCard } from './VaultStatsCard';
 import { useConnection, useChainId } from 'wagmi';
 import { motion } from 'motion/react';
 import { positionAnimations } from '@/widgets/shared/animation/presets';
@@ -120,14 +120,10 @@ export const SupplyWithdraw = ({
 
   // Calculate final balances after transaction
   const finalAssetBalance =
-    widgetState.flow === MorphoVaultFlow.SUPPLY
-      ? (assetBalance || 0n) - amount
-      : (assetBalance || 0n) + amount;
+    widgetState.flow === VaultFlow.SUPPLY ? (assetBalance || 0n) - amount : (assetBalance || 0n) + amount;
 
   const finalVaultBalance =
-    widgetState.flow === MorphoVaultFlow.SUPPLY
-      ? (vaultBalance || 0n) + amount
-      : (vaultBalance || 0n) - amount;
+    widgetState.flow === VaultFlow.SUPPLY ? (vaultBalance || 0n) + amount : (vaultBalance || 0n) - amount;
 
   return (
     <MotionVStack gap={0} className="w-full" variants={positionAnimations}>
@@ -143,7 +139,7 @@ export const SupplyWithdraw = ({
           </TabsList>
         </motion.div>
 
-        <MorphoVaultStatsCard
+        <VaultStatsCard
           isLoading={isVaultDataLoading}
           vaultAddress={vaultAddress}
           vaultName={vaultName}

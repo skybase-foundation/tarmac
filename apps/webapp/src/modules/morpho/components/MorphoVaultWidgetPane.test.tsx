@@ -39,8 +39,8 @@ vi.mock('@/widgets', () => ({
     return <div>morpho-vault-widget</div>;
   },
   TxStatus: { IDLE: 'idle', SUCCESS: 'success' },
-  MorphoVaultAction: { SUPPLY: 'supply', WITHDRAW: 'withdraw' },
-  MorphoVaultFlow: { SUPPLY: 'supply', WITHDRAW: 'withdraw' }
+  VaultAction: { SUPPLY: 'supply', WITHDRAW: 'withdraw' },
+  VaultFlow: { SUPPLY: 'supply', WITHDRAW: 'withdraw' }
 }));
 
 vi.mock('@/modules/config/hooks/useConfigContext', () => ({

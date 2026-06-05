@@ -4,7 +4,7 @@ import { TradeDetails } from '@/modules/trade/components/TradeDetails';
 import { UpgradeDetails } from '@/modules/upgrade/components/UpgradeDetails';
 import { SavingsDetails } from '@/modules/savings/components/SavingsDetails';
 import { StUSDSDetails } from '@/modules/stusds/components/StUSDSDetails';
-import { MorphoVaultDetails } from '@/modules/morpho/components/MorphoVaultDetails';
+import { VaultDetails } from '@/modules/morpho/components/VaultDetails';
 import { VAULTS } from '@/hooks';
 import { ConvertIntentMapping, QueryParams } from '@/lib/constants';
 import { useChainId } from 'wagmi';
@@ -154,7 +154,7 @@ export const DetailsPane = ({ intent }: DetailsPaneProps) => {
                 case VaultsIntent.SPARK_VAULT_INTENT:
                   return (
                     <MotionDetailsWrapper key={keys[10]}>
-                      <MorphoVaultDetails
+                      <VaultDetails
                         vaultAddress={selectedVault.vaultAddress[chainId]}
                         assetToken={selectedVault.assetToken}
                         vaultName={selectedVault.name}

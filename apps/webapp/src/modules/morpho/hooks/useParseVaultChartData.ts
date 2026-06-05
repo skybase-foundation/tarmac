@@ -3,7 +3,7 @@ import { Data, TimeFrame } from '@/modules/ui/components/Chart';
 import { useParseTvlChartData } from '@/modules/ui/hooks/useParseTvlChartData';
 import { MorphoVaultChartDataPoint } from '@/hooks';
 
-export function useParseMorphoVaultChartData(
+export function useParseVaultChartData(
   timeFrame: TimeFrame,
   chartData: MorphoVaultChartDataPoint[],
   decimals?: number,

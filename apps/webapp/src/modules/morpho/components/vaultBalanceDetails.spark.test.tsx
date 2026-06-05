@@ -33,12 +33,12 @@ vi.mock('@/hooks', async importActual => {
   };
 });
 
-import { MorphoVaultBalanceDetails } from './MorphoVaultBalanceDetails';
+import { VaultBalanceDetails } from './VaultBalanceDetails';
 import { TOKENS } from '@/hooks';
 
-describe('MorphoVaultBalanceDetails (provider-aware rewards card)', () => {
+describe('VaultBalanceDetails (provider-aware rewards card)', () => {
   it('hides the Accumulated Rewards card for a Spark vault but keeps Supplied + Remaining', async () => {
-    render(<MorphoVaultBalanceDetails vaultAddress={VAULT} assetToken={TOKENS.usdt} provider="spark" />, {
+    render(<VaultBalanceDetails vaultAddress={VAULT} assetToken={TOKENS.usdt} provider="spark" />, {
       wrapper: WagmiWrapper
     });
 
@@ -51,7 +51,7 @@ describe('MorphoVaultBalanceDetails (provider-aware rewards card)', () => {
   });
 
   it('renders the Accumulated Rewards card for a Morpho vault (unchanged)', async () => {
-    render(<MorphoVaultBalanceDetails vaultAddress={VAULT} assetToken={TOKENS.usdt} provider="morpho" />, {
+    render(<VaultBalanceDetails vaultAddress={VAULT} assetToken={TOKENS.usdt} provider="morpho" />, {
       wrapper: WagmiWrapper
     });
 
@@ -60,7 +60,7 @@ describe('MorphoVaultBalanceDetails (provider-aware rewards card)', () => {
   });
 
   it('defaults to Morpho behavior when provider is omitted', async () => {
-    render(<MorphoVaultBalanceDetails vaultAddress={VAULT} assetToken={TOKENS.usdt} />, {
+    render(<VaultBalanceDetails vaultAddress={VAULT} assetToken={TOKENS.usdt} />, {
       wrapper: WagmiWrapper
     });
 

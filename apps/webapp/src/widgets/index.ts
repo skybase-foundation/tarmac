@@ -16,7 +16,15 @@ export * from './UpgradeWidget/lib/constants';
 export { RewardsFlow, RewardsScreen, RewardsAction } from './RewardsWidget/lib/constants';
 export * from './SealModuleWidget/lib/constants';
 export { StakeFlow, StakeAction, StakeStep, StakeScreen } from './StakeModuleWidget/lib/constants';
-export { MorphoVaultFlow, MorphoVaultAction, MorphoVaultScreen } from './MorphoVaultWidget/lib/constants';
+export {
+  VaultFlow,
+  VaultAction,
+  VaultScreen,
+  // Legacy provider-specific aliases, kept so existing importers keep working.
+  VaultFlow as MorphoVaultFlow,
+  VaultAction as MorphoVaultAction,
+  VaultScreen as MorphoVaultScreen
+} from './VaultWidget/lib/constants';
 export {
   PendleFlow,
   PendleAction,
@@ -44,8 +52,8 @@ export { BalancesWidget } from './BalancesWidget';
 export { SealModuleWidget } from './SealModuleWidget/index';
 export type { BalancesWidgetProps } from './BalancesWidget';
 export { StakeModuleWidget } from './StakeModuleWidget/index';
-export { VaultWidget, MorphoVaultWidget } from './MorphoVaultWidget';
-export type { VaultWidgetProps, MorphoVaultWidgetProps } from './MorphoVaultWidget';
+export { VaultWidget, MorphoVaultWidget } from './VaultWidget';
+export type { VaultWidgetProps, MorphoVaultWidgetProps } from './VaultWidget';
 export { PendleWidget } from './PendleWidget';
 export type { PendleWidgetProps } from './PendleWidget';
 export { usePendleTokens } from './PendleWidget/hooks/usePendleTokens';
@@ -59,9 +67,9 @@ export { pendleAnalyticsData } from './PendleWidget/lib/pendleAnalyticsData';
 export type { PendleAnalyticsDataInput, PendleAnalyticsSide } from './PendleWidget/lib/pendleAnalyticsData';
 export { TokenDropdown } from './shared/components/ui/token/TokenDropdown';
 export { TransactionOverview } from './shared/components/ui/transaction/TransactionOverview';
-export { VaultPoweredByBadge, MorphoVaultBadge } from './MorphoVaultWidget/components/MorphoVaultBadge';
-export { MorphoRateBreakdownPopover } from './MorphoVaultWidget/components/MorphoRateBreakdownPopover';
-export { SparkVaultRate } from './MorphoVaultWidget/components/SparkVaultRate';
+export { VaultPoweredByBadge, MorphoVaultBadge } from './VaultWidget/components/MorphoVaultBadge';
+export { MorphoRateBreakdownPopover } from './VaultWidget/components/MorphoRateBreakdownPopover';
+export { SparkVaultRate } from './VaultWidget/components/SparkVaultRate';
 export type { TradeToken, NativeCurrency } from './TradeWidget/lib/types';
 export { formatUrnIndex } from './SealModuleWidget/lib/utils';
 export { defaultConfig } from './config/default-config';
