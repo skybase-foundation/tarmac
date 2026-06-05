@@ -1,4 +1,4 @@
-import { useBatchMorphoVaultDeposit, useVaultWithdraw, useVaultRedeem } from '@/hooks';
+import { useBatchVaultDeposit, useVaultWithdraw, useVaultRedeem } from '@/hooks';
 import { WidgetContext } from '@/widgets/context/WidgetContext';
 import { useContext } from 'react';
 import { MorphoVaultAction, MorphoVaultFlow } from '../lib/constants';
@@ -85,7 +85,7 @@ export const useMorphoVaultTransactions = ({
   });
 
   // Deposit hook (with batch approval support)
-  const morphoVaultDeposit = useBatchMorphoVaultDeposit({
+  const morphoVaultDeposit = useBatchVaultDeposit({
     amount,
     vaultAddress,
     assetAddress,
