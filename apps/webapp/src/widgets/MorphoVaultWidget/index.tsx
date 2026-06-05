@@ -12,6 +12,7 @@ import {
   type VaultProvider
 } from '@/hooks';
 import { useDebounce } from '@/hooks';
+import { REFERRAL_CODE } from '@/lib/constants';
 import { resolveSparkVaultRate } from '@/lib/vaults/sparkVaultRate';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { WidgetContainer } from '@/widgets/shared/components/ui/widget/WidgetContainer';
@@ -230,6 +231,8 @@ const VaultWidgetWrapped = ({
     amount: debouncedAmount,
     shares: vaultData?.userShares ?? 0n,
     max,
+    provider,
+    referralCode: REFERRAL_CODE,
     vaultAddress,
     assetAddress,
     assetDecimals,
