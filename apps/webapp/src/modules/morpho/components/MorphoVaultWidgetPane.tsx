@@ -2,8 +2,8 @@ import {
   MorphoVaultWidget,
   TxStatus,
   WidgetStateChangeParams,
-  MorphoVaultFlow,
-  MorphoVaultAction
+  VaultFlow,
+  VaultAction
 } from '@/widgets';
 import { Token, type VaultProvider } from '@/hooks';
 import { QueryParams } from '@/lib/constants';
@@ -38,7 +38,7 @@ export function MorphoVaultWidgetPane({
     useConfigContext();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const flow = (searchParams.get(QueryParams.Flow) || undefined) as MorphoVaultFlow | undefined;
+  const flow = (searchParams.get(QueryParams.Flow) || undefined) as VaultFlow | undefined;
 
   // Get addresses for the current chain
   const currentVaultAddress = vaultAddress[chainId];
@@ -78,7 +78,7 @@ export function MorphoVaultWidgetPane({
 
     // After a successful linked action SUPPLY, set the final step to "success"
     if (
-      widgetState.action === MorphoVaultAction.SUPPLY &&
+      widgetState.action === VaultAction.SUPPLY &&
       txStatus === TxStatus.SUCCESS &&
       linkedActionConfig.step === LinkedActionSteps.COMPLETED_CURRENT
     ) {

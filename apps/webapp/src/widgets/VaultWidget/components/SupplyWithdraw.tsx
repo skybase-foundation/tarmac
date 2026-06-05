@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/widgets/components/u
 import { TransactionOverview } from '@/widgets/shared/components/ui/transaction/TransactionOverview';
 import { useContext, useMemo } from 'react';
 import { WidgetContext } from '@/widgets/context/WidgetContext';
-import { MorphoVaultFlow } from '../lib/constants';
+import { VaultFlow } from '../lib/constants';
 import { VaultStatsCard } from './VaultStatsCard';
 import { useConnection, useChainId } from 'wagmi';
 import { motion } from 'motion/react';
@@ -120,12 +120,12 @@ export const SupplyWithdraw = ({
 
   // Calculate final balances after transaction
   const finalAssetBalance =
-    widgetState.flow === MorphoVaultFlow.SUPPLY
+    widgetState.flow === VaultFlow.SUPPLY
       ? (assetBalance || 0n) - amount
       : (assetBalance || 0n) + amount;
 
   const finalVaultBalance =
-    widgetState.flow === MorphoVaultFlow.SUPPLY
+    widgetState.flow === VaultFlow.SUPPLY
       ? (vaultBalance || 0n) + amount
       : (vaultBalance || 0n) - amount;
 

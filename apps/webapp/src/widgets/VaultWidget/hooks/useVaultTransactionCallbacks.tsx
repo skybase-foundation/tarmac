@@ -10,7 +10,7 @@ import {
 } from '@/widgets/shared/types/widgetState';
 import { WidgetAnalyticsEvent, WidgetAnalyticsEventType } from '@/widgets/shared/types/analyticsEvents';
 import { useMemo, useRef } from 'react';
-import { MorphoVaultAction, MorphoVaultFlow } from '../lib/constants';
+import { VaultAction, VaultFlow } from '../lib/constants';
 
 interface UseVaultTransactionCallbacksParameters extends Pick<WidgetProps, 'onWidgetStateChange'> {
   onNotification?: OnNotificationCallback;
@@ -92,8 +92,8 @@ export const useVaultTransactionCallbacks = ({
         handleOnMutate();
         fireAnalytics({
           event: WidgetAnalyticsEventType.TRANSACTION_STARTED,
-          action: isApproveStep ? MorphoVaultAction.APPROVE : MorphoVaultAction.SUPPLY,
-          flow: MorphoVaultFlow.SUPPLY,
+          action: isApproveStep ? VaultAction.APPROVE : VaultAction.SUPPLY,
+          flow: VaultFlow.SUPPLY,
           amount: formattedAmount,
           assetSymbol,
           data: vaultData
@@ -114,8 +114,8 @@ export const useVaultTransactionCallbacks = ({
         mutateVaultData();
         fireAnalytics({
           event: WidgetAnalyticsEventType.TRANSACTION_COMPLETED,
-          action: MorphoVaultAction.SUPPLY,
-          flow: MorphoVaultFlow.SUPPLY,
+          action: VaultAction.SUPPLY,
+          flow: VaultFlow.SUPPLY,
           txHash: hash,
           amount: formattedAmount,
           assetSymbol,
@@ -134,8 +134,8 @@ export const useVaultTransactionCallbacks = ({
         mutateVaultData();
         fireAnalytics({
           event: WidgetAnalyticsEventType.TRANSACTION_ERROR,
-          action: MorphoVaultAction.SUPPLY,
-          flow: MorphoVaultFlow.SUPPLY,
+          action: VaultAction.SUPPLY,
+          flow: VaultFlow.SUPPLY,
           txHash: hash,
           amount: formattedAmount,
           assetSymbol,
@@ -169,8 +169,8 @@ export const useVaultTransactionCallbacks = ({
         handleOnMutate();
         fireAnalytics({
           event: WidgetAnalyticsEventType.TRANSACTION_STARTED,
-          action: MorphoVaultAction.WITHDRAW,
-          flow: MorphoVaultFlow.WITHDRAW,
+          action: VaultAction.WITHDRAW,
+          flow: VaultFlow.WITHDRAW,
           amount: formattedAmount,
           assetSymbol,
           data: vaultData
@@ -189,8 +189,8 @@ export const useVaultTransactionCallbacks = ({
         mutateAssetBalance();
         fireAnalytics({
           event: WidgetAnalyticsEventType.TRANSACTION_COMPLETED,
-          action: MorphoVaultAction.WITHDRAW,
-          flow: MorphoVaultFlow.WITHDRAW,
+          action: VaultAction.WITHDRAW,
+          flow: VaultFlow.WITHDRAW,
           txHash: hash,
           amount: formattedAmount,
           assetSymbol,
@@ -207,8 +207,8 @@ export const useVaultTransactionCallbacks = ({
         mutateVaultData();
         fireAnalytics({
           event: WidgetAnalyticsEventType.TRANSACTION_ERROR,
-          action: MorphoVaultAction.WITHDRAW,
-          flow: MorphoVaultFlow.WITHDRAW,
+          action: VaultAction.WITHDRAW,
+          flow: VaultFlow.WITHDRAW,
           txHash: hash,
           amount: formattedAmount,
           assetSymbol,

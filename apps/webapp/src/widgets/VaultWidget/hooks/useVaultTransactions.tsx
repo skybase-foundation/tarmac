@@ -1,7 +1,7 @@
 import { useBatchVaultDeposit, useVaultWithdraw, useVaultRedeem } from '@/hooks';
 import { WidgetContext } from '@/widgets/context/WidgetContext';
 import { useContext } from 'react';
-import { MorphoVaultAction, MorphoVaultFlow } from '../lib/constants';
+import { VaultAction, VaultFlow } from '../lib/constants';
 import {
   WidgetProps,
   OnNotificationCallback,
@@ -93,8 +93,8 @@ export const useVaultTransactions = ({
     referral: referralCode,
     shouldUseBatch,
     enabled:
-      widgetState.flow === MorphoVaultFlow.SUPPLY &&
-      (widgetState.action === MorphoVaultAction.SUPPLY || widgetState.action === MorphoVaultAction.APPROVE),
+      widgetState.flow === VaultFlow.SUPPLY &&
+      (widgetState.action === VaultAction.SUPPLY || widgetState.action === VaultAction.APPROVE),
     ...supplyTransactionCallbacks
   });
 
@@ -102,7 +102,7 @@ export const useVaultTransactions = ({
   const morphoVaultWithdraw = useVaultWithdraw({
     amount,
     vaultAddress,
-    enabled: widgetState.action === MorphoVaultAction.WITHDRAW && !max,
+    enabled: widgetState.action === VaultAction.WITHDRAW && !max,
     ...withdrawTransactionCallbacks
   });
 
@@ -110,7 +110,7 @@ export const useVaultTransactions = ({
   const morphoVaultRedeem = useVaultRedeem({
     shares,
     vaultAddress,
-    enabled: widgetState.action === MorphoVaultAction.WITHDRAW && max,
+    enabled: widgetState.action === VaultAction.WITHDRAW && max,
     ...withdrawTransactionCallbacks
   });
 

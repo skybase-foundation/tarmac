@@ -16,7 +16,15 @@ export * from './UpgradeWidget/lib/constants';
 export { RewardsFlow, RewardsScreen, RewardsAction } from './RewardsWidget/lib/constants';
 export * from './SealModuleWidget/lib/constants';
 export { StakeFlow, StakeAction, StakeStep, StakeScreen } from './StakeModuleWidget/lib/constants';
-export { MorphoVaultFlow, MorphoVaultAction, MorphoVaultScreen } from './VaultWidget/lib/constants';
+export {
+  VaultFlow,
+  VaultAction,
+  VaultScreen,
+  // Legacy provider-specific aliases, kept so existing importers keep working.
+  VaultFlow as MorphoVaultFlow,
+  VaultAction as MorphoVaultAction,
+  VaultScreen as MorphoVaultScreen
+} from './VaultWidget/lib/constants';
 export {
   PendleFlow,
   PendleAction,
