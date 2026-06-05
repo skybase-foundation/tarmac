@@ -7,6 +7,7 @@ import {
   OnNotificationCallback,
   OnAnalyticsEventCallback
 } from '@/widgets/shared/types/widgetState';
+import { VaultProvider } from '@/hooks/vaults/types';
 import { useMorphoVaultTransactionCallbacks } from './useMorphoVaultTransactionCallbacks';
 
 interface UseMorphoVaultTransactionsParameters extends Pick<WidgetProps, 'onWidgetStateChange'> {
@@ -18,6 +19,10 @@ interface UseMorphoVaultTransactionsParameters extends Pick<WidgetProps, 'onWidg
   shares: bigint;
   /** Whether to use redeem instead of withdraw (for max withdrawals) */
   max: boolean;
+  /** Which provider operates the vault — only Spark attaches the on-chain referral code */
+  provider: VaultProvider;
+  /** Referral code to attribute Spark deposits to (ignored for Morpho) */
+  referralCode: number;
   /** The Morpho vault address */
   vaultAddress: `0x${string}`;
   /** The underlying asset address (e.g., USDC) */
@@ -44,6 +49,8 @@ export const useMorphoVaultTransactions = ({
   amount,
   shares,
   max,
+  provider,
+  referralCode,
   vaultAddress,
   assetAddress,
   assetDecimals,
@@ -82,6 +89,8 @@ export const useMorphoVaultTransactions = ({
     amount,
     vaultAddress,
     assetAddress,
+    provider,
+    referral: referralCode,
     shouldUseBatch,
     enabled:
       widgetState.flow === MorphoVaultFlow.SUPPLY &&
