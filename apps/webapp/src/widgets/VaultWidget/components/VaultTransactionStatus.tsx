@@ -62,9 +62,9 @@ export const VaultTransactionStatus = ({
     txStatus,
     widgetState
   } = useContext(WidgetContext);
-  const flow = widgetState.flow as MorphoVaultFlow;
-  const action = widgetState.action as MorphoVaultAction;
-  const screen = widgetState.screen as MorphoVaultScreen;
+  const flow = widgetState.flow as VaultFlow;
+  const action = widgetState.action as VaultAction;
+  const screen = widgetState.screen as VaultScreen;
 
   useEffect(() => {
     setOriginToken(assetToken);

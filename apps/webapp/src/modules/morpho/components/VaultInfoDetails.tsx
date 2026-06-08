@@ -49,22 +49,26 @@ export function VaultInfoDetails({ vaultAddress, assetToken, provider = 'morpho'
     query: { enabled: !isMorpho && !!assetAddress && !!vaultAddress }
   });
 
-  // TVL: Morpho reads its market API. For Spark, on-chain ERC-4626 `totalAssets()`
-  // is authoritative and real-time — and correct on whatever chain the user is on
-  // (a fork/testnet reflects its own state, where the API would report mainnet). It
-  // also matches the in-widget card, which already reads on-chain. Fall back to the
-  // API only if the on-chain read is unavailable.
+  // TVL: API-first for both providers. Morpho reads its market API; Spark reads our
+  // sky.money Savings API (the dispatcher's normalized `totalAssets`) and falls back
+  // to the on-chain ERC-4626 `totalAssets()` only when the API is empty/down. This
+  // matches the expert stats card and the in-widget card, which are also API-first
+  // for Spark.
   const totalAssets = isMorpho
     ? marketData?.totalAssets
-    : (onChainData?.totalAssets ?? marketData?.totalAssets);
+    : (marketData?.totalAssets ?? onChainData?.totalAssets);
   // Available liquidity: API vault-level figure (summed `liquidity[]`), falling
   // back to the on-chain vault buffer for Spark.
   const liquidity = marketData?.liquidity ?? onChainLiquidity;
 
-  // Morpho tracks its API's loading/error; Spark tracks the on-chain fallback so
-  // an empty/down API degrades to the on-chain figure with no error surfaced.
-  const tvlLoading = isMorpho ? marketDataLoading : onChainLoading;
-  const tvlError = isMorpho ? marketError : onChainError;
+  // Morpho tracks its API's loading/error. For Spark, TVL is API-first with an
+  // on-chain fallback, so we are loading only while no figure has resolved yet, and
+  // we surface an error only if BOTH sources fail (a healthy fallback hides an API
+  // outage). Liquidity keeps its own on-chain buffer fallback.
+  const tvlLoading = isMorpho
+    ? marketDataLoading
+    : totalAssets === undefined && (marketDataLoading || onChainLoading);
+  const tvlError = isMorpho ? marketError : totalAssets === undefined ? (marketError ?? onChainError) : null;
   const liquidityLoading = isMorpho ? marketDataLoading : onChainLiquidityLoading;
 
   // Fees apply to Morpho vaults only. Spark surfaces a single net APY with no fee

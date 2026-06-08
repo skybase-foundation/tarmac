@@ -82,7 +82,9 @@ describe('VaultInfoDetails (Spark API-first, on-chain fallback)', () => {
     expect(liquidity).toContain('60,000,000');
     expect(liquidity).not.toContain('40,000,000'); // not the per-user maxWithdraw
     expect(liquidity).not.toContain('101,000,000'); // not the on-chain buffer (API wins)
-    expect(screen.getAllByText('0%').length).toBeGreaterThanOrEqual(2);
+    // Fees are a Morpho-only concept; the Spark panel omits the fee cards entirely.
+    expect(screen.queryByText('Management Fee')).toBeNull();
+    expect(screen.queryByText('Performance Fee')).toBeNull();
     expect(screen.queryByText(/Unable to fetch data/i)).toBeNull();
   });
 
