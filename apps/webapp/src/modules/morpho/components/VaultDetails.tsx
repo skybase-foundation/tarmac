@@ -86,11 +86,17 @@ export function VaultDetails({ vaultAddress, assetToken, vaultName }: VaultDetai
           </DetailSectionRow>
         </DetailSection>
       )}
-      <DetailSection title={t`Metrics`}>
-        <DetailSectionRow>
-          <MorphoVaultChart vaultAddress={vaultAddress} assetToken={assetToken} provider={provider} />
-        </DetailSectionRow>
-      </DetailSection>
+      {/* TEMPORARY: the Metrics chart is hidden for the Spark (sUSDT) vault while
+          the Savings historic endpoint returns no data. Remove this
+          `provider !== 'spark'` gate to bring the chart back once the endpoint is
+          populated. */}
+      {provider !== 'spark' && (
+        <DetailSection title={t`Metrics`}>
+          <DetailSectionRow>
+            <MorphoVaultChart vaultAddress={vaultAddress} assetToken={assetToken} provider={provider} />
+          </DetailSectionRow>
+        </DetailSection>
+      )}
       <DetailSection title={t`About`}>
         <DetailSectionRow>
           <AboutMorphoVaults bannerId={getBannerId()} />
