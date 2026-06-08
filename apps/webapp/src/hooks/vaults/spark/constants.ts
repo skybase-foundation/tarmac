@@ -12,18 +12,23 @@ import { VaultConfig } from '../types';
 export const SPARK_USDT_VAULT_ADDRESS = '0x74cb54e082411cfCAEADb00a0765625B10410DAa' as const;
 
 /**
- * Host for the live Spark Savings Data API (public, read-only, no auth). This is
- * the single swappable config point: moving these calls from `api.spark.fi` to
- * our own proxy (e.g. `api.sky.money` / Sky BA endpoints, per ADR-0001's deferred
- * host decision) is a one-value edit here — the client owns path construction and
- * everything downstream depends on the normalized shape, not the URL.
+ * Host for the Savings Data API. We now read it from our own edge-cached proxy
+ * (`api.sky.money` in prod, `staging-api.sky.money` in staging/dev), which
+ * returns Spark's public Savings payload verbatim — so everything downstream
+ * still depends on the normalized shape, not the URL or the origin.
+ *
+ * Env-driven to match the other sky.money API surfaces (`VITE_AUTH_URL`,
+ * `VITE_GEO_CONFIG_URL`, `VITE_TERMS_ENDPOINT`): the committed default targets
+ * staging; the prod build injects `VITE_VAULTS_API_URL=https://api.sky.money`.
  */
-export const SPARK_SAVINGS_API_HOST = 'https://api.spark.fi';
+export const SPARK_SAVINGS_API_HOST = import.meta.env.VITE_VAULTS_API_URL || 'https://staging-api.sky.money';
 
 /**
  * Path identity for our vault: `sky / mainnet / usdt` (→ `sUSDT`, "Tether
- * Savings"). NOT `spark/.../usdt` — that is Spark's own `spUSDT` product. The
- * client builds `/v1/savings/{protocol}/{chain}/{token}` from this.
+ * Savings"). NOT `spark/.../usdt` — that is Spark's own `spUSDT` product. Our
+ * proxy bakes protocol+chain in server-side, so the client now sends only the
+ * `token` segment (`/vaults/savings/{token}`); protocol/chain are retained here
+ * to document the vault's identity.
  */
 export const SPARK_VAULT_IDENTITY = { protocol: 'sky', chain: 'mainnet', token: 'usdt' } as const;
 

@@ -47,6 +47,10 @@ Create a `.env` file in the root directory of the project. You can use the `.env
 - `VITE_GEO_BYPASS`: Boolean flag to bypass geo-restriction checks during development (assumes no restricted regions and enables all modules)
 - `VITE_PRIVATE_HOSTNAMES`: (Optional) Comma-separated list of hostnames treated as private Cloudflare Access-gated deployments
 
+#### Vaults data
+
+- `VITE_VAULTS_API_URL`: Base URL for the sky.money Savings vault data API (edge-cached proxy of Spark's public Savings API). Falls back to the staging URL if not set; the production build sets `https://api.sky.money`
+
 #### Testing
 
 - `TENDERLY_API_KEY`: API key for Tenderly (used for forking and managing virtual networks during e2e tests)
