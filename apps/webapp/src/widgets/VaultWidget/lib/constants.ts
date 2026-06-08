@@ -45,28 +45,36 @@ export const morphoVaultWithdrawReviewTitle = msg`Begin the withdraw process`;
 export function getMorphoVaultSupplyReviewSubtitle({
   batchStatus,
   symbol,
-  needsAllowance
+  needsAllowance,
+  vaultLabel
 }: {
   batchStatus: BatchStatus;
   symbol: string;
   needsAllowance: boolean;
+  vaultLabel: string;
 }): MessageDescriptor {
   if (!needsAllowance) {
-    return msg`You will supply your ${symbol} to the Morpho Vault.`;
+    return msg`You will supply your ${symbol} to ${vaultLabel}.`;
   }
 
   switch (batchStatus) {
     case BatchStatus.ENABLED:
-      return msg`You're allowing this app to access your ${symbol} and supply it to the Morpho Vault in one bundled transaction.`;
+      return msg`You're allowing this app to access your ${symbol} and supply it to ${vaultLabel} in one bundled transaction.`;
     case BatchStatus.DISABLED:
-      return msg`You're allowing this app to access your ${symbol} and supply it to the Morpho Vault in multiple transactions.`;
+      return msg`You're allowing this app to access your ${symbol} and supply it to ${vaultLabel} in multiple transactions.`;
     default:
       return msg``;
   }
 }
 
-export function getMorphoVaultWithdrawReviewSubtitle({ symbol }: { symbol: string }): MessageDescriptor {
-  return msg`You will withdraw your ${symbol} from the Morpho Vault.`;
+export function getMorphoVaultWithdrawReviewSubtitle({
+  symbol,
+  vaultLabel
+}: {
+  symbol: string;
+  vaultLabel: string;
+}): MessageDescriptor {
+  return msg`You will withdraw your ${symbol} from ${vaultLabel}.`;
 }
 
 // Action descriptions
@@ -74,19 +82,21 @@ export function morphoVaultActionDescription({
   flow,
   action,
   txStatus,
-  needsAllowance
+  needsAllowance,
+  vaultLabel
 }: {
   flow: VaultFlow;
   action: VaultAction;
   txStatus: TxStatus;
   needsAllowance: boolean;
+  vaultLabel: string;
 }): MessageDescriptor {
   if ((action === VaultAction.SUPPLY || action === VaultAction.WITHDRAW) && txStatus === TxStatus.SUCCESS) {
-    return msg`${flow === VaultFlow.SUPPLY ? 'Approved and supplied to' : 'Withdrawn from'} the Morpho Vault`;
+    return msg`${flow === VaultFlow.SUPPLY ? 'Approved and supplied to' : 'Withdrawn from'} ${vaultLabel}`;
   }
   return needsAllowance
-    ? msg`${flow === VaultFlow.SUPPLY ? 'Approving and supplying to' : 'Withdrawing from'} the Morpho Vault`
-    : msg`${flow === VaultFlow.SUPPLY ? 'Supplying to' : 'Withdrawing from'} the Morpho Vault`;
+    ? msg`${flow === VaultFlow.SUPPLY ? 'Approving and supplying to' : 'Withdrawing from'} ${vaultLabel}`
+    : msg`${flow === VaultFlow.SUPPLY ? 'Supplying to' : 'Withdrawing from'} ${vaultLabel}`;
 }
 
 // Transaction status subtitles
@@ -94,24 +104,26 @@ export function supplySubtitle({
   txStatus,
   amount,
   symbol,
-  needsAllowance
+  needsAllowance,
+  vaultLabel
 }: {
   txStatus: TxStatus;
   amount: string;
   symbol: string;
   needsAllowance: boolean;
+  vaultLabel: string;
 }): MessageDescriptor {
   switch (txStatus) {
     case TxStatus.INITIALIZED:
       return needsAllowance
-        ? msg`Please allow this app to access your ${symbol} and supply it to the Morpho Vault.`
+        ? msg`Please allow this app to access your ${symbol} and supply it to ${vaultLabel}.`
         : msg`Almost done!`;
     case TxStatus.LOADING:
       return needsAllowance
         ? msg`Your token approval and supply are being processed on the blockchain. Please wait.`
         : msg`Your supply is being processed on the blockchain. Please wait.`;
     case TxStatus.SUCCESS:
-      return msg`You've supplied ${amount} ${symbol} to the Morpho Vault`;
+      return msg`You've supplied ${amount} ${symbol} to ${vaultLabel}`;
     case TxStatus.ERROR:
       return msg`An error occurred during the supply flow.`;
     default:
@@ -122,11 +134,13 @@ export function supplySubtitle({
 export function withdrawSubtitle({
   txStatus,
   amount,
-  symbol
+  symbol,
+  vaultLabel
 }: {
   txStatus: TxStatus;
   amount: string;
   symbol: string;
+  vaultLabel: string;
 }): MessageDescriptor {
   switch (txStatus) {
     case TxStatus.INITIALIZED:
@@ -134,7 +148,7 @@ export function withdrawSubtitle({
     case TxStatus.LOADING:
       return msg`Your withdrawal is being processed on the blockchain. Please wait.`;
     case TxStatus.SUCCESS:
-      return msg`You've withdrawn ${amount} ${symbol} from the Morpho Vault.`;
+      return msg`You've withdrawn ${amount} ${symbol} from ${vaultLabel}.`;
     case TxStatus.ERROR:
       return msg`An error occurred during the withdraw flow.`;
     default:
@@ -184,4 +198,3 @@ export function withdrawLoadingButtonText({
       return msg``;
   }
 }
-

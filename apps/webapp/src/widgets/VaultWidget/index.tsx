@@ -256,6 +256,11 @@ const VaultWidgetWrapped = ({
   // Derive current call index based on active flow (for multi-step tracking)
   const currentCallIndex = widgetState.flow === VaultFlow.SUPPLY ? morphoVaultDeposit.currentCallIndex : 0;
 
+  // How the vault is referred to in the transaction-flow copy. Morpho keeps its
+  // legacy "the Morpho Vault" phrasing; other providers use their vault name
+  // directly (e.g. "Tether Savings") so the copy isn't mis-branded as Morpho.
+  const vaultLabel = provider === 'morpho' ? 'the Morpho Vault' : vaultName;
+
   // Initialize widget state based on connection and tab
   useEffect(() => {
     if (isConnectedAndEnabled) {
@@ -591,6 +596,7 @@ const VaultWidgetWrapped = ({
               needsAllowance={needsAllowance}
               needsAllowanceReset={needsAllowanceReset}
               currentCallIndex={currentCallIndex}
+              vaultLabel={vaultLabel}
             />
           </CardAnimationWrapper>
         ) : widgetState.screen === VaultScreen.REVIEW ? (
@@ -603,6 +609,7 @@ const VaultWidgetWrapped = ({
               amount={debouncedAmount}
               needsAllowance={needsAllowance}
               needsAllowanceReset={needsAllowanceReset}
+              vaultLabel={vaultLabel}
             />
           </CardAnimationWrapper>
         ) : (

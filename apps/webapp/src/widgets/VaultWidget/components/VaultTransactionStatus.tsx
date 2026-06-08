@@ -31,7 +31,8 @@ export const VaultTransactionStatus = ({
   isBatchTransaction,
   needsAllowance,
   needsAllowanceReset,
-  currentCallIndex
+  currentCallIndex,
+  vaultLabel
 }: {
   amount: bigint;
   assetToken: Token;
@@ -40,6 +41,8 @@ export const VaultTransactionStatus = ({
   needsAllowance: boolean;
   needsAllowanceReset: boolean;
   currentCallIndex: number;
+  /** How the vault is named in copy (e.g. "the Morpho Vault" or "Tether Savings") */
+  vaultLabel: string;
 }) => {
   // Capture at mount to avoid state changes during transaction
   const [flowNeedsAllowance] = useState(needsAllowance);
@@ -93,7 +96,8 @@ export const VaultTransactionStatus = ({
               txStatus: flowTxStatus,
               amount: formattedAmount,
               symbol: assetToken.symbol,
-              needsAllowance: flowNeedsAllowance
+              needsAllowance: flowNeedsAllowance,
+              vaultLabel
             })
           )
         );
@@ -103,7 +107,8 @@ export const VaultTransactionStatus = ({
               flow,
               action,
               txStatus: flowTxStatus,
-              needsAllowance: flowNeedsAllowance
+              needsAllowance: flowNeedsAllowance,
+              vaultLabel
             })
           )
         );
@@ -143,7 +148,8 @@ export const VaultTransactionStatus = ({
             withdrawSubtitle({
               txStatus: flowTxStatus,
               amount: formattedAmount,
-              symbol: assetToken.symbol
+              symbol: assetToken.symbol,
+              vaultLabel
             })
           )
         );
@@ -153,7 +159,8 @@ export const VaultTransactionStatus = ({
               flow,
               action,
               txStatus: flowTxStatus,
-              needsAllowance: flowNeedsAllowance
+              needsAllowance: flowNeedsAllowance,
+              vaultLabel
             })
           )
         );
@@ -181,6 +188,7 @@ export const VaultTransactionStatus = ({
     amount,
     assetToken,
     chainId,
+    vaultLabel,
     i18n,
     setTxTitle,
     setTxSubtitle,
