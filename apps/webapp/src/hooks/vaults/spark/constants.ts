@@ -12,16 +12,18 @@ import { VaultConfig } from '../types';
 export const SPARK_USDT_VAULT_ADDRESS = '0x74cb54e082411cfCAEADb00a0765625B10410DAa' as const;
 
 /**
- * Host for the Savings Data API. We now read it from our own edge-cached proxy
+ * Host for the Savings Data API. We read it from our own edge-cached proxy
  * (`api.sky.money` in prod, `staging-api.sky.money` in staging/dev), which
- * returns Spark's public Savings payload verbatim — so everything downstream
+ * returns Spark's public Savings payload verbatim, so everything downstream
  * still depends on the normalized shape, not the URL or the origin.
  *
- * Env-driven to match the other sky.money API surfaces (`VITE_AUTH_URL`,
- * `VITE_GEO_CONFIG_URL`, `VITE_TERMS_ENDPOINT`): the committed default targets
- * staging; the prod build injects `VITE_VAULTS_API_URL=https://api.sky.money`.
+ * Reuses `VITE_AUTH_URL`, the shared base for our sky.money API gateway
+ * (api-workers serves auth, geo-config, terms, and these vault routes on the
+ * same host), so there is no separate var to provision per environment. The
+ * committed default targets staging; the prod build already sets this to
+ * `https://api.sky.money`.
  */
-export const SPARK_SAVINGS_API_HOST = import.meta.env.VITE_VAULTS_API_URL || 'https://staging-api.sky.money';
+export const SPARK_SAVINGS_API_HOST = import.meta.env.VITE_AUTH_URL || 'https://staging-api.sky.money';
 
 /**
  * Path identity for our vault: `sky / mainnet / usdt` (→ `sUSDT`, "Tether

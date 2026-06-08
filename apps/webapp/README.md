@@ -37,7 +37,7 @@ Create a `.env` file in the root directory of the project. You can use the `.env
 
 #### Authentication and wallet
 
-- `VITE_AUTH_URL`: Base URL for the authentication service
+- `VITE_AUTH_URL`: Base URL for the sky.money API gateway. Used for authentication/VPN checks and as the base for the Savings vault data API. Falls back to the staging URL if not set
 - `VITE_WALLETCONNECT_PROJECT_ID`: Project ID for WalletConnect integration
 - `VITE_SKIP_AUTH_CHECK`: Boolean flag to bypass authentication checks during development
 
@@ -46,10 +46,6 @@ Create a `.env` file in the root directory of the project. You can use the `.env
 - `VITE_GEO_CONFIG_URL`: (Optional) URL for the geo-config endpoint that provides runtime region-based restrictions. Falls back to staging URL if not set
 - `VITE_GEO_BYPASS`: Boolean flag to bypass geo-restriction checks during development (assumes no restricted regions and enables all modules)
 - `VITE_PRIVATE_HOSTNAMES`: (Optional) Comma-separated list of hostnames treated as private Cloudflare Access-gated deployments
-
-#### Vaults data
-
-- `VITE_VAULTS_API_URL`: Base URL for the sky.money Savings vault data API (edge-cached proxy of Spark's public Savings API). Falls back to the staging URL if not set; the production build sets `https://api.sky.money`
 
 #### Testing
 
