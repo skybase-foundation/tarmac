@@ -105,6 +105,14 @@ const STABLE_ACTIONS: BalancesAction[] = [
     badge: 'New'
   },
   {
+    // tokens, subtitle and badge are filled in at render time from active Pendle markets
+    label: 'Fixed Yield Markets',
+    tokens: [],
+    rateKey: 'fixedYield',
+    module: 'fixedYield',
+    url: '?widget=fixed'
+  },
+  {
     label: 'Expert: stUSDS',
     tokens: ['stUSDS'],
     rateKey: 'stusds',
@@ -408,27 +416,22 @@ export function BalancesSuggestedActions({
     trade: 'trade'
   };
 
-  const fixedYieldAction = useMemo<BalancesAction>(() => {
+  const stableActions = useMemo(() => {
     const activeMarkets = PENDLE_MARKETS.filter(m => !isMarketMatured(m.expiry));
-    const activePtSymbols = activeMarkets.map(m => `PT-${m.underlyingSymbol}`);
-    return {
-      label: 'Fixed Yield Markets',
-      tokens: activePtSymbols,
-      rateKey: 'fixedYield',
-      subtitle: activeMarkets.length === 1 ? 'Rate: {rate}' : 'Rates up to {rate}',
-      module: 'fixedYield',
-      url: '?widget=fixed',
-      badge: isNewIntent(Intent.FIXED_INTENT) ? 'New' : undefined
-    };
+    return STABLE_ACTIONS.map(action =>
+      action.rateKey === 'fixedYield'
+        ? {
+            ...action,
+            tokens: activeMarkets.map(m => `PT-${m.underlyingSymbol}`),
+            subtitle: activeMarkets.length === 1 ? 'Rate: {rate}' : 'Rates up to {rate}',
+            badge: isNewIntent(Intent.FIXED_INTENT) ? 'New' : undefined
+          }
+        : action
+    );
   }, []);
 
   const actions = useMemo(() => {
-    let result =
-      widget === 'stables'
-        ? [...STABLE_ACTIONS, fixedYieldAction]
-        : widget === 'sky'
-          ? SKY_ACTIONS
-          : TOKEN_ACTIONS;
+    let result = widget === 'stables' ? stableActions : widget === 'sky' ? SKY_ACTIONS : TOKEN_ACTIONS;
     if (restrictedModules) {
       result = result.filter(action => restrictedModules.includes(action.module));
     }
@@ -437,7 +440,7 @@ export function BalancesSuggestedActions({
       return !geoModuleId || isModuleEnabled(geoModuleId);
     });
     return result;
-  }, [widget, restrictedModules, isModuleEnabled, fixedYieldAction]);
+  }, [widget, restrictedModules, isModuleEnabled, stableActions]);
 
   const { rates: rateMap, loading: rateLoading } = useActionRates(actions, chainId);
 
