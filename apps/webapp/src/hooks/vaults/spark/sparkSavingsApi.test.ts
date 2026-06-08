@@ -3,27 +3,25 @@ import { buildSparkSavingsUrl, fetchSparkSavingsCurrent, fetchSparkSavingsHistor
 import { SPARK_SAVINGS_API_HOST, SPARK_VAULT_IDENTITY } from './constants';
 
 describe('buildSparkSavingsUrl', () => {
-  it('builds the current-endpoint path from the vault identity and the default host', () => {
-    expect(buildSparkSavingsUrl(SPARK_VAULT_IDENTITY)).toBe(
-      `${SPARK_SAVINGS_API_HOST}/v1/savings/sky/mainnet/usdt`
-    );
+  it('builds the current-endpoint path from the vault token and the default host', () => {
+    expect(buildSparkSavingsUrl(SPARK_VAULT_IDENTITY)).toBe(`${SPARK_SAVINGS_API_HOST}/vaults/savings/usdt`);
   });
 
   it('builds the URL from a configured host (a host swap is a one-arg change)', () => {
     expect(buildSparkSavingsUrl(SPARK_VAULT_IDENTITY, { host: 'https://api.sky.money' })).toBe(
-      'https://api.sky.money/v1/savings/sky/mainnet/usdt'
+      'https://api.sky.money/vaults/savings/usdt'
     );
   });
 
   it('strips trailing slashes from the host', () => {
     expect(buildSparkSavingsUrl(SPARK_VAULT_IDENTITY, { host: 'https://proxy.test/' })).toBe(
-      'https://proxy.test/v1/savings/sky/mainnet/usdt'
+      'https://proxy.test/vaults/savings/usdt'
     );
   });
 
   it('appends /historic when requested', () => {
     expect(buildSparkSavingsUrl(SPARK_VAULT_IDENTITY, { historic: true })).toBe(
-      `${SPARK_SAVINGS_API_HOST}/v1/savings/sky/mainnet/usdt/historic`
+      `${SPARK_SAVINGS_API_HOST}/vaults/savings/usdt/historic`
     );
   });
 });
@@ -41,7 +39,7 @@ describe('fetchSparkSavingsCurrent', () => {
 
     const result = await fetchSparkSavingsCurrent(SPARK_VAULT_IDENTITY, 'https://proxy.test');
 
-    expect(fetchSpy).toHaveBeenCalledWith('https://proxy.test/v1/savings/sky/mainnet/usdt');
+    expect(fetchSpy).toHaveBeenCalledWith('https://proxy.test/vaults/savings/usdt');
     expect(result).toEqual(payload);
   });
 
@@ -67,7 +65,7 @@ describe('fetchSparkSavingsHistoric', () => {
 
     const result = await fetchSparkSavingsHistoric(SPARK_VAULT_IDENTITY, 'https://proxy.test');
 
-    expect(fetchSpy).toHaveBeenCalledWith('https://proxy.test/v1/savings/sky/mainnet/usdt/historic');
+    expect(fetchSpy).toHaveBeenCalledWith('https://proxy.test/vaults/savings/usdt/historic');
     expect(result).toEqual(payload);
   });
 

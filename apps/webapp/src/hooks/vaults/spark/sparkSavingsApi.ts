@@ -72,20 +72,21 @@ export type SparkVaultIdentity = {
 };
 
 /**
- * Build a Savings API URL from the vault's `{protocol, chain, token}` identity.
+ * Build a Savings API URL for the vault from its `token` segment.
  *
- * The host is the single swappable config point (defaults to
- * `SPARK_SAVINGS_API_HOST`): later moving these calls from `api.spark.fi` to our
- * own proxy is a one-arg change here, leaving the normalizer/hook/UI untouched.
- * `historic: true` appends `/historic` (consumed by the metrics-chart slice).
+ * Points at our own edge-cached proxy (`SPARK_SAVINGS_API_HOST`, env-driven):
+ * the route is `/vaults/savings/{token}`, with protocol+chain baked in
+ * server-side. The proxy returns Spark's payload verbatim, so the normalizer,
+ * hook, and UI are untouched. `historic: true` appends `/historic` (consumed by
+ * the metrics-chart slice). `host` overrides the origin (used in tests).
  */
 export function buildSparkSavingsUrl(
   identity: SparkVaultIdentity,
   options: { host?: string; historic?: boolean } = {}
 ): string {
   const host = (options.host ?? SPARK_SAVINGS_API_HOST).replace(/\/+$/, '');
-  const { protocol, chain, token } = identity;
-  const base = `${host}/v1/savings/${protocol}/${chain}/${token}`;
+  const { token } = identity;
+  const base = `${host}/vaults/savings/${token}`;
   return options.historic ? `${base}/historic` : base;
 }
 
