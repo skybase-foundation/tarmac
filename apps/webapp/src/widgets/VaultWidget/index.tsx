@@ -118,6 +118,11 @@ const VaultWidgetWrapped = ({
 
   const userAssets = vaultData?.userAssets ?? 0n;
   const availableLiquidity = marketData?.liquidity;
+
+  // sUSDT (Spark) TVL is API-first, with the on-chain ERC-4626 `totalAssets()` as the
+  // fallback when the API is empty/down. Morpho keeps reading TVL on-chain (unchanged).
+  const vaultTvl =
+    provider === 'morpho' ? vaultData?.totalAssets : (marketData?.totalAssets ?? vaultData?.totalAssets);
   const hasLiquidityData = !isMarketDataLoading && availableLiquidity !== undefined;
 
   // User's underlying asset balance (e.g., USDC balance)
@@ -641,7 +646,7 @@ const VaultWidgetWrapped = ({
               vaultAddress={vaultAddress}
               vaultName={vaultName}
               provider={provider}
-              vaultTvl={vaultData?.totalAssets}
+              vaultTvl={vaultTvl}
               vaultRate={resolveSparkVaultRate({
                 apiFormattedRate: marketData?.rate?.formattedNetRate,
                 onChainFormattedRate: sparkRate
