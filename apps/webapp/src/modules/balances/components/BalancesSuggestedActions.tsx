@@ -13,6 +13,8 @@ import {
   useOverallSkyData,
   useStUsdsData,
   useMorphoVaultMultipleRateApiData,
+  useSparkVaultResolvedRate,
+  SPARK_USDT_VAULT_ADDRESS,
   MORPHO_VAULTS,
   useAvailableTokenRewardContracts,
   useRewardsChartInfo,
@@ -62,7 +64,7 @@ type BalancesAction = {
     | 'upgrade'
     | 'fixedYield';
   url: string;
-  rateKey?: 'vaults' | 'rewards' | 'savings' | 'stusds' | 'staking' | 'fixedYield';
+  rateKey?: 'vaults' | 'sparkVault' | 'rewards' | 'savings' | 'stusds' | 'staking' | 'fixedYield';
   badge?: string;
   showMorphoIcon?: boolean;
   subtitle?: string;
@@ -92,6 +94,15 @@ const STABLE_ACTIONS: BalancesAction[] = [
     subtitle: 'Rate: {rate}',
     module: 'savings',
     url: '?widget=savings'
+  },
+  {
+    label: 'Tether Savings (sUSDT)',
+    tokens: ['USDT'],
+    rateKey: 'sparkVault',
+    subtitle: 'Rate: {rate}',
+    module: 'morpho',
+    url: `?widget=vaults&vault=${SPARK_USDT_VAULT_ADDRESS}&vault_module=spark`,
+    badge: 'New'
   },
   {
     label: 'Expert: stUSDS',
@@ -169,6 +180,7 @@ const MODULE_ICONS: Record<BalancesAction['module'], (props: IconProps) => React
 
 const RATE_TOOLTIP_TYPES: Partial<Record<NonNullable<BalancesAction['rateKey']>, PopoverTooltipType>> = {
   vaults: 'morpho',
+  sparkVault: 'morpho',
   rewards: 'str',
   savings: 'ssr',
   stusds: 'stusds',
@@ -218,6 +230,10 @@ function useActionRates(
   );
   const { data: morphoRatesData, isLoading: vaultsLoading } = useMorphoVaultMultipleRateApiData({
     vaultAddresses
+  });
+
+  const { formattedRate: sparkVaultRate, isLoading: sparkVaultLoading } = useSparkVaultResolvedRate({
+    vaultAddress: SPARK_USDT_VAULT_ADDRESS
   });
 
   const allRewardContracts = useAvailableTokenRewardContracts(mainnetChainId);
@@ -296,6 +312,11 @@ function useActionRates(
       }
     }
 
+    if (rateKeys.has('sparkVault')) {
+      loading.sparkVault = sparkVaultLoading;
+      rates.sparkVault = sparkVaultRate ?? '—';
+    }
+
     if (rateKeys.has('rewards')) {
       loading.rewards = rewardsLoading;
       if (rewardsHighestRate?.rate != null) {
@@ -328,6 +349,8 @@ function useActionRates(
     overallSkyData,
     stUsdsData,
     morphoRatesData,
+    sparkVaultRate,
+    sparkVaultLoading,
     rewardsHighestRate,
     stakeHighestRateData,
     savingsLoading,
