@@ -26,7 +26,8 @@ export const VaultTransactionReview = ({
   assetToken,
   amount,
   needsAllowance,
-  needsAllowanceReset
+  needsAllowanceReset,
+  vaultLabel
 }: {
   batchEnabled?: boolean;
   setBatchEnabled?: (enabled: boolean) => void;
@@ -35,6 +36,8 @@ export const VaultTransactionReview = ({
   amount: bigint;
   needsAllowance: boolean;
   needsAllowanceReset: boolean;
+  /** How the vault is named in copy (e.g. "the Morpho Vault" or "Tether Savings") */
+  vaultLabel: string;
 }) => {
   const { i18n } = useLingui();
   const { data: batchSupported } = useIsBatchSupported();
@@ -68,7 +71,8 @@ export const VaultTransactionReview = ({
           getMorphoVaultSupplyReviewSubtitle({
             batchStatus: !!batchSupported && batchEnabled ? BatchStatus.ENABLED : BatchStatus.DISABLED,
             symbol: assetToken.symbol,
-            needsAllowance
+            needsAllowance,
+            vaultLabel
           })
         )
       );
@@ -78,12 +82,15 @@ export const VaultTransactionReview = ({
       setTxSubtitle(
         i18n._(
           getMorphoVaultWithdrawReviewSubtitle({
-            symbol: assetToken.symbol
+            symbol: assetToken.symbol,
+            vaultLabel
           })
         )
       );
     }
-    setTxDescription(i18n._(morphoVaultActionDescription({ flow, action, txStatus, needsAllowance })));
+    setTxDescription(
+      i18n._(morphoVaultActionDescription({ flow, action, txStatus, needsAllowance, vaultLabel }))
+    );
   }, [
     flow,
     action,
@@ -94,6 +101,7 @@ export const VaultTransactionReview = ({
     batchEnabled,
     assetToken.symbol,
     needsAllowance,
+    vaultLabel,
     txStatus,
     setTxTitle,
     setTxSubtitle,
