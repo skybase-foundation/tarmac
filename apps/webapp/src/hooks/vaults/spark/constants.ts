@@ -23,7 +23,7 @@ export const SPARK_USDT_VAULT_ADDRESS = '0x74cb54e082411cfCAEADb00a0765625B10410
  * committed default targets staging; the prod build already sets this to
  * `https://api.sky.money`.
  */
-export const SPARK_SAVINGS_API_HOST = import.meta.env.VITE_AUTH_URL || 'https://staging-api.sky.money';
+export const SPARK_SAVINGS_API_HOST = import.meta.env?.VITE_AUTH_URL || 'https://staging-api.sky.money';
 
 /**
  * Path identity for our vault: `sky / mainnet / usdt` (→ `sUSDT`, "Tether
