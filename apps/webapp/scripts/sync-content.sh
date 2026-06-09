@@ -111,6 +111,10 @@ if [ -z "$CORPUS_TAG" ]; then
 fi
 print_status "Corpus version tag: $CORPUS_TAG"
 
+# Capture the exact commit the content came from (provenance for the sync log)
+CORPUS_SHA=$(git rev-parse HEAD 2>/dev/null)
+print_status "Corpus commit: $CORPUS_SHA"
+
 # Check if the extract script exists
 if [ ! -f "$EXTRACT_SCRIPT" ]; then
     print_error "Extract script '$EXTRACT_SCRIPT' not found in content repository!"
@@ -201,15 +205,14 @@ else
     cp -r "$TEMP_DIR/$OUTPUT_SOURCE_PATH/"* "$DESTINATION_PATH/"
 fi
 
-# Create version.ts file in src/data directory
-print_status "Creating corpus version file..."
-cat > "src/data/version.ts" << EOF
-// Version of the corpus content used to generate FAQs, tooltips, banners, and speed bumps
-export const CORPUS_VERSION = '$CORPUS_TAG';
-
-// Branch name used during content extraction
-export const CORPUS_BRANCH = '$CONTENT_VERSION';
-EOF
+# Record provenance via the shared writer (also used by the /sync-corpus skill),
+# so both sync paths emit identical version.ts + corpus-sync-log.jsonl output.
+print_status "Recording sync provenance (version.ts + sync log)..."
+node scripts/record-corpus-sync.mjs \
+    --branch "$CONTENT_VERSION" \
+    --commit "$CORPUS_SHA" \
+    --tag "$CORPUS_TAG" \
+    --file-types "banners,faqs,tooltips,speed-bumps"
 
 # Post-process sharedFaqItems.ts and update getBalancesFaqItems.ts
 print_status "Processing sharedFaqItems and updating getBalancesFaqItems..."
