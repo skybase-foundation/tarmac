@@ -28,7 +28,7 @@ import { VaultProvider } from '@/hooks/vaults/types';
 /**
  * Build the vault-address → deep-link map. Each link carries the target vault's
  * own provider in `vault_module` (derived via the slice-01 mapping), so a Spark
- * vault link reads `vault_module=spark` and a Morpho one `vault_module=morpho`.
+ * vault link reads `vault_module=sky` and a Morpho one `vault_module=morpho`.
  */
 export const buildVaultDeepLinkMap = (
   url: string | undefined,
