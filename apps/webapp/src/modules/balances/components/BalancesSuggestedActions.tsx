@@ -4,6 +4,7 @@ import { useChainId, useChains } from 'wagmi';
 import { QueryParams, mapQueryParamToIntent, isNewIntent } from '@/lib/constants';
 import { Intent } from '@/lib/enums';
 import { normalizeUrlParam } from '@/lib/helpers/string/normalizeUrlParam';
+import { vaultModuleForProvider } from '@/lib/vaults/vaultProviderMapping';
 import { isMultichain } from '@/lib/widget-network-map';
 import { useNetworkSwitch } from '@/modules/ui/context/NetworkSwitchContext';
 import { Text } from '@/modules/layout/components/Typography';
@@ -101,7 +102,7 @@ const STABLE_ACTIONS: BalancesAction[] = [
     rateKey: 'sparkVault',
     subtitle: 'Rate: {rate}',
     module: 'morpho',
-    url: `?widget=vaults&vault=${SPARK_USDT_VAULT_ADDRESS}&vault_module=spark`,
+    url: `?widget=vaults&vault=${SPARK_USDT_VAULT_ADDRESS}&vault_module=${vaultModuleForProvider('sky')}`,
     badge: 'New'
   },
   {
