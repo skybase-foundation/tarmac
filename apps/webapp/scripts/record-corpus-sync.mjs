@@ -10,7 +10,7 @@
 //
 // Usage:
 //   node record-corpus-sync.mjs --branch <ref> --commit <sha> [--tag <tag>] \
-//     [--file-types banners,faqs,tooltips,speed-bumps] [--changed path1,path2] [--in-sync 5] [--dry-run]
+//     [--file-types banners,faqs,tooltips] [--changed path1,path2] [--in-sync 5] [--dry-run]
 
 import { writeFileSync, appendFileSync, readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -46,7 +46,7 @@ const commit = opts.commit || null;
 const tag = opts.tag && opts.tag.length ? opts.tag : null;
 const fileTypes = opts['file-types']
   ? opts['file-types'].split(',').map(s => s.trim()).filter(Boolean)
-  : ['banners', 'faqs', 'tooltips', 'speed-bumps'];
+  : ['banners', 'faqs', 'tooltips'];
 
 // result is optional: the script overwrites everything (no per-section diff), so it omits these.
 // The skill computes a semantic diff and passes them.
