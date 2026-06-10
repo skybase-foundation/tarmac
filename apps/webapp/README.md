@@ -37,7 +37,7 @@ Create a `.env` file in the root directory of the project. You can use the `.env
 
 #### Authentication and wallet
 
-- `VITE_AUTH_URL`: Base URL for the authentication service
+- `VITE_AUTH_URL`: Base URL for the sky.money API gateway. Used for authentication/VPN checks and as the base for the Savings vault data API. Falls back to the staging URL if not set
 - `VITE_WALLETCONNECT_PROJECT_ID`: Project ID for WalletConnect integration
 - `VITE_SKIP_AUTH_CHECK`: Boolean flag to bypass authentication checks during development
 

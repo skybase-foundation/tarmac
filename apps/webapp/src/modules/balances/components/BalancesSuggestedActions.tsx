@@ -1,9 +1,11 @@
 import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useChainId, useChains } from 'wagmi';
+import { mainnet } from 'wagmi/chains';
 import { QueryParams, mapQueryParamToIntent, isNewIntent } from '@/lib/constants';
 import { Intent } from '@/lib/enums';
 import { normalizeUrlParam } from '@/lib/helpers/string/normalizeUrlParam';
+import { vaultModuleForProvider } from '@/lib/vaults/vaultProviderMapping';
 import { isMultichain } from '@/lib/widget-network-map';
 import { useNetworkSwitch } from '@/modules/ui/context/NetworkSwitchContext';
 import { Text } from '@/modules/layout/components/Typography';
@@ -13,6 +15,8 @@ import {
   useOverallSkyData,
   useStUsdsData,
   useMorphoVaultMultipleRateApiData,
+  useSparkVaultResolvedRate,
+  sparkUsdtVaultAddress,
   MORPHO_VAULTS,
   useAvailableTokenRewardContracts,
   useRewardsChartInfo,
@@ -62,7 +66,7 @@ type BalancesAction = {
     | 'upgrade'
     | 'fixedYield';
   url: string;
-  rateKey?: 'vaults' | 'rewards' | 'savings' | 'stusds' | 'staking' | 'fixedYield';
+  rateKey?: 'vaults' | 'sparkVault' | 'rewards' | 'savings' | 'stusds' | 'staking' | 'fixedYield';
   badge?: string;
   showMorphoIcon?: boolean;
   subtitle?: string;
@@ -92,6 +96,23 @@ const STABLE_ACTIONS: BalancesAction[] = [
     subtitle: 'Rate: {rate}',
     module: 'savings',
     url: '?widget=savings'
+  },
+  {
+    label: 'Tether Savings (sUSDT)',
+    tokens: ['USDT'],
+    rateKey: 'sparkVault',
+    subtitle: 'Rate: {rate}',
+    module: 'morpho',
+    url: `?widget=vaults&vault=${sparkUsdtVaultAddress[mainnet.id]}&vault_module=${vaultModuleForProvider('sky')}`,
+    badge: 'New'
+  },
+  {
+    // tokens, subtitle and badge are filled in at render time from active Pendle markets
+    label: 'Fixed Yield Markets',
+    tokens: [],
+    rateKey: 'fixedYield',
+    module: 'fixedYield',
+    url: '?widget=fixed'
   },
   {
     label: 'Expert: stUSDS',
@@ -169,6 +190,7 @@ const MODULE_ICONS: Record<BalancesAction['module'], (props: IconProps) => React
 
 const RATE_TOOLTIP_TYPES: Partial<Record<NonNullable<BalancesAction['rateKey']>, PopoverTooltipType>> = {
   vaults: 'morpho',
+  sparkVault: 'sky',
   rewards: 'str',
   savings: 'ssr',
   stusds: 'stusds',
@@ -218,6 +240,10 @@ function useActionRates(
   );
   const { data: morphoRatesData, isLoading: vaultsLoading } = useMorphoVaultMultipleRateApiData({
     vaultAddresses
+  });
+
+  const { formattedRate: sparkVaultRate, isLoading: sparkVaultLoading } = useSparkVaultResolvedRate({
+    vaultAddress: sparkUsdtVaultAddress[mainnet.id]
   });
 
   const allRewardContracts = useAvailableTokenRewardContracts(mainnetChainId);
@@ -296,6 +322,11 @@ function useActionRates(
       }
     }
 
+    if (rateKeys.has('sparkVault')) {
+      loading.sparkVault = sparkVaultLoading;
+      rates.sparkVault = sparkVaultRate ?? '—';
+    }
+
     if (rateKeys.has('rewards')) {
       loading.rewards = rewardsLoading;
       if (rewardsHighestRate?.rate != null) {
@@ -328,6 +359,8 @@ function useActionRates(
     overallSkyData,
     stUsdsData,
     morphoRatesData,
+    sparkVaultRate,
+    sparkVaultLoading,
     rewardsHighestRate,
     stakeHighestRateData,
     savingsLoading,
@@ -385,27 +418,22 @@ export function BalancesSuggestedActions({
     trade: 'trade'
   };
 
-  const fixedYieldAction = useMemo<BalancesAction>(() => {
+  const stableActions = useMemo(() => {
     const activeMarkets = PENDLE_MARKETS.filter(m => !isMarketMatured(m.expiry));
-    const activePtSymbols = activeMarkets.map(m => `PT-${m.underlyingSymbol}`);
-    return {
-      label: 'Fixed Yield Markets',
-      tokens: activePtSymbols,
-      rateKey: 'fixedYield',
-      subtitle: activeMarkets.length === 1 ? 'Rate: {rate}' : 'Rates up to {rate}',
-      module: 'fixedYield',
-      url: '?widget=fixed',
-      badge: isNewIntent(Intent.FIXED_INTENT) ? 'New' : undefined
-    };
+    return STABLE_ACTIONS.map(action =>
+      action.rateKey === 'fixedYield'
+        ? {
+            ...action,
+            tokens: activeMarkets.map(m => `PT-${m.underlyingSymbol}`),
+            subtitle: activeMarkets.length === 1 ? 'Rate: {rate}' : 'Rates up to {rate}',
+            badge: isNewIntent(Intent.FIXED_INTENT) ? 'New' : undefined
+          }
+        : action
+    );
   }, []);
 
   const actions = useMemo(() => {
-    let result =
-      widget === 'stables'
-        ? [...STABLE_ACTIONS, fixedYieldAction]
-        : widget === 'sky'
-          ? SKY_ACTIONS
-          : TOKEN_ACTIONS;
+    let result = widget === 'stables' ? stableActions : widget === 'sky' ? SKY_ACTIONS : TOKEN_ACTIONS;
     if (restrictedModules) {
       result = result.filter(action => restrictedModules.includes(action.module));
     }
@@ -414,7 +442,7 @@ export function BalancesSuggestedActions({
       return !geoModuleId || isModuleEnabled(geoModuleId);
     });
     return result;
-  }, [widget, restrictedModules, isModuleEnabled, fixedYieldAction]);
+  }, [widget, restrictedModules, isModuleEnabled, stableActions]);
 
   const { rates: rateMap, loading: rateLoading } = useActionRates(actions, chainId);
 
