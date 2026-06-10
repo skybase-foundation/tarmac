@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useChainId, useChains } from 'wagmi';
+import { mainnet } from 'wagmi/chains';
 import { QueryParams, mapQueryParamToIntent, isNewIntent } from '@/lib/constants';
 import { Intent } from '@/lib/enums';
 import { normalizeUrlParam } from '@/lib/helpers/string/normalizeUrlParam';
@@ -15,7 +16,7 @@ import {
   useStUsdsData,
   useMorphoVaultMultipleRateApiData,
   useSparkVaultResolvedRate,
-  SPARK_USDT_VAULT_ADDRESS,
+  sparkUsdtVaultAddress,
   MORPHO_VAULTS,
   useAvailableTokenRewardContracts,
   useRewardsChartInfo,
@@ -102,7 +103,7 @@ const STABLE_ACTIONS: BalancesAction[] = [
     rateKey: 'sparkVault',
     subtitle: 'Rate: {rate}',
     module: 'morpho',
-    url: `?widget=vaults&vault=${SPARK_USDT_VAULT_ADDRESS}&vault_module=${vaultModuleForProvider('sky')}`,
+    url: `?widget=vaults&vault=${sparkUsdtVaultAddress[mainnet.id]}&vault_module=${vaultModuleForProvider('sky')}`,
     badge: 'New'
   },
   {
@@ -242,7 +243,7 @@ function useActionRates(
   });
 
   const { formattedRate: sparkVaultRate, isLoading: sparkVaultLoading } = useSparkVaultResolvedRate({
-    vaultAddress: SPARK_USDT_VAULT_ADDRESS
+    vaultAddress: sparkUsdtVaultAddress[mainnet.id]
   });
 
   const allRewardContracts = useAvailableTokenRewardContracts(mainnetChainId);
