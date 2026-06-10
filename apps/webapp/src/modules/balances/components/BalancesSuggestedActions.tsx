@@ -189,7 +189,7 @@ const MODULE_ICONS: Record<BalancesAction['module'], (props: IconProps) => React
 
 const RATE_TOOLTIP_TYPES: Partial<Record<NonNullable<BalancesAction['rateKey']>, PopoverTooltipType>> = {
   vaults: 'morpho',
-  sparkVault: 'morpho',
+  sparkVault: 'sky',
   rewards: 'str',
   savings: 'ssr',
   stusds: 'stusds',
