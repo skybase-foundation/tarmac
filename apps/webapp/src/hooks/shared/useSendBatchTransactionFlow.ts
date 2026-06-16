@@ -32,9 +32,7 @@ export function useSendBatchTransactionFlow<const calls extends readonly unknown
     reset: resetSendCalls
   } = useSendCalls({
     mutation: {
-      onMutate: () => {
-        return onMutate();
-      },
+      onMutate,
       onSuccess: () => {
         if (onStart) {
           onStart(undefined);

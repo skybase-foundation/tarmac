@@ -70,9 +70,7 @@ export function useSequentialTransactionFlow(
     reset: resetWrite
   } = useWriteContract({
     mutation: {
-      onMutate: () => {
-        return onMutate();
-      },
+      onMutate,
       onSuccess: (hash: `0x${string}`) => {
         setHasWriteError(false);
         onStart(hash);
