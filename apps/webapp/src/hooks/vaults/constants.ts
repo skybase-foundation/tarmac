@@ -9,8 +9,13 @@ import { VaultConfig } from './types';
  * hooks suite (vitest.hooks.config.ts) runs without the macro transform, so
  * importing it here would break those tests. `@/lib/constants` exports the same
  * constant (same expression) for the rest of the app.
+ *
+ * Optional-chain `import.meta.env?.` (matching the sibling spark/morpho constants):
+ * the `@/hooks` barrel is imported by plain-Node tsx scripts (e.g. the e2e
+ * `fund-accounts.ts`) where Vite never defines `import.meta.env`, so a direct
+ * `.VITE_…` read would throw at module load.
  */
-const SUSDT_VAULT_ENABLED = import.meta.env.VITE_SUSDT_VAULT_ENABLED === 'true';
+const SUSDT_VAULT_ENABLED = import.meta.env?.VITE_SUSDT_VAULT_ENABLED === 'true';
 
 /**
  * Unified vault registry — every provider's vaults in one list (ADR-0001,
